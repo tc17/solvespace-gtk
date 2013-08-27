@@ -1,4 +1,4 @@
-SUBDIRS = exposed tools 
+SUBDIRS = tools 
 bin_PROGRAMS = solverspace
 solverspace_SOURCES = bsp.cpp clipboard.cpp confscreen.cpp constraint.cpp constrainteq.cpp \
 	describescreen.cpp drawconstraint.cpp draw.cpp drawentity.cpp entity.cpp export.cpp \
