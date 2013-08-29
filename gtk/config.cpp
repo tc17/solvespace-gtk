@@ -5,7 +5,7 @@
 #include <string>
 #include "solvespace.h"
 
-void CnfFreezeString(std::string& str, const char *name)
+void CnfFreezeString(const std::string& str, const char *name)
 { 
 }
 

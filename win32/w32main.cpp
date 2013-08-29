@@ -270,7 +270,7 @@ void ExitNow(void) {
 // Helpers so that we can read/write registry keys from the platform-
 // independent code.
 //-----------------------------------------------------------------------------
-void CnfFreezeString(std::string& str, const char *name)
+void CnfFreezeString(const std::string& str, const char *name)
     { FreezeStringF(str.c_str(), FREEZE_SUBKEY, name); }
 
 void CnfFreezeDWORD(DWORD v, const char *name)

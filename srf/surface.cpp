@@ -6,6 +6,15 @@
 //-----------------------------------------------------------------------------
 #include "../solvespace.h"
 
+typedef struct {
+    hSCurve     hc;
+    hSSurface   hs;
+} TrimLine;
+
+typedef struct {
+    hSSurface   d[4];
+} Revolved;
+
 SSurface SSurface::FromExtrusionOf(SBezier *sb, Vector t0, Vector t1) {
     SSurface ret;
     ZERO(&ret);
@@ -525,10 +534,6 @@ void SShell::MakeFromExtrusionOf(SBezierLoopSet *sbls, Vector t0, Vector t1,
     for(sbl = sbls->l.First(); sbl; sbl = sbls->l.NextAfter(sbl)) {
         SBezier *sb;
 
-        typedef struct {
-            hSCurve     hc;
-            hSSurface   hs;
-        } TrimLine;
         List<TrimLine> trimLines;
         ZERO(&trimLines);
 
@@ -643,10 +648,6 @@ void SShell::MakeFromRevolutionOf(SBezierLoopSet *sbls, Vector pt, Vector axis,
     for(sbl = sbls->l.First(); sbl; sbl = sbls->l.NextAfter(sbl)) {
         int i, j;
         SBezier *sb, *prev;
-
-        typedef struct {
-            hSSurface   d[4];
-        } Revolved;
         List<Revolved> hsl;
         ZERO(&hsl);
 

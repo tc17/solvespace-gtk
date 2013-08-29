@@ -56,3 +56,10 @@ void dbp(const char *format, ...)
     vfprintf(stderr, format, ap);
     va_end(ap);
 }
+
+std::string GetAbsoluteFilename(const std::string& path)
+{
+}
+
+SDWORD GetMilliseconds(void){
+}

@@ -196,7 +196,7 @@ void ExitNow(void);
 void CnfFreezeString(const std::string& str, const char *name);
 void CnfFreezeDWORD(DWORD v, const char *name);
 void CnfFreezeFloat(float v, const char *name);
-std::string CnfThawString(char *name);
+std::string CnfThawString(const char *name);
 DWORD CnfThawDWORD(DWORD v, const char *name);
 float CnfThawFloat(float v, const char *name);
 
@@ -279,7 +279,7 @@ void MakeMatrix(double *mat, double a11, double a12, double a13, double a14,
                              double a21, double a22, double a23, double a24,
                              double a31, double a32, double a33, double a34,
                              double a41, double a42, double a43, double a44);
-std::string MakePathRelative(const std::string& base, std::string& path);
+std::string MakePathRelative(const std::string& base, const std::string& path);
 std::string MakePathAbsolute(const std::string& base, const std::string& path);
 bool StringAllPrintable(char *str);
 bool StringEndsIn(const std::string& str, const char *ending);

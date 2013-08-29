@@ -10,13 +10,16 @@ solverspace_SOURCES = bsp.cpp clipboard.cpp confscreen.cpp constraint.cpp constr
 	style.cpp system.cpp textscreens.cpp textwin.cpp toolbar.cpp ttf.cpp undoredo.cpp util.cpp view.cpp \
 	dsc.h expr.h inttypes.h polygon.h sketch.h solvespace.h ui.h
 
+solverspace_SOURCES += srf/boolean.cpp srf/curve.cpp srf/merge.cpp srf/ratpoly.cpp srf/raycast.cpp srf/surface.cpp \
+		      srf/surface.h srf/surfinter.cpp srf/triangulate.cpp
+
 nodist_solverspace_SOURCES = icons.h icons-proto.h
 
-solverspace_CFLAGS = $(GL_CFLAGS) $(GLU_CFLAGS)
-solverspace_LDADD = $(GL_LIBS) $(GLU_LIBS)
+solverspace_CFLAGS = $(GL_CFLAGS) $(GLU_CFLAGS) $(PNG_CFLAGS)
+solverspace_LDADD = $(GL_LIBS) $(GLU_LIBS) $(PNG_LIBS)
 
 if HAVE_GTKMM
-solverspace_SOURCES += gtk/unixutil.cpp gtk/config.cpp
+solverspace_SOURCES += gtk/unixutil.cpp gtk/config.cpp gtk/ui.cpp
 endif
 
 AM_CXXFLAGS = -Wall -Wextra -Wno-unused-parameter
