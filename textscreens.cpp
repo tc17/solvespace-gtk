@@ -268,8 +268,8 @@ void TextWindow::ScreenDeleteGroup(int link, DWORD v) {
     SS.GenerateAll(0, INT_MAX);
 }
 void TextWindow::ShowGroupInfo(void) {
-    Group *g = SK.group.FindById(shown.group);
-    char *s = "???";
+    Group *pg, *g = SK.group.FindById(shown.group);
+    const char *s = "???";
 
     if(shown.group.v == Group::HGROUP_REFERENCES.v) {
         Printf(true, "%FtGROUP  %E%s", g->DescriptionString());
@@ -324,7 +324,7 @@ void TextWindow::ShowGroupInfo(void) {
         }
     } else if(g->type == Group::IMPORTED) {
         Printf(true, " %Ftimport geometry from file%E");
-        Printf(false, "%Ba   '%s'", g->impFileRel);
+        Printf(false, "%Ba   '%s'", g->impFileRel.c_str());
         Printf(false, "%Bd   %Ftscaled by%E %# %Fl%Ll%f%D[change]%E",
             g->scale,
             &TextWindow::ScreenChangeGroupScale, g->h.v);
@@ -383,7 +383,7 @@ void TextWindow::ShowGroupInfo(void) {
         &TextWindow::ScreenChangeGroupOption,
         g->visible ? CHECK_TRUE : CHECK_FALSE);
 
-    Group *pg = g->PreviousGroup();
+    pg = g->PreviousGroup();
     if(pg && pg->runningMesh.IsEmpty() && g->thisMesh.IsEmpty()) {
         Printf(false, " %f%Lf%Fd%c  force NURBS surfaces to triangle mesh",
             &TextWindow::ScreenChangeGroupOption,

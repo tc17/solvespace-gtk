@@ -7,8 +7,7 @@
 #ifndef __DSC_H
 #define __DSC_H
 
-typedef unsigned long DWORD;
-typedef unsigned char BYTE;
+#include "inttypes.h"
 
 class Vector;
 class Vector4;
@@ -373,8 +372,8 @@ class NameStr {
 public:
     char str[64];
 
-    inline void strcpy(char *in) {
-        memcpy(str, in, min(strlen(in)+1, sizeof(str)));
+    inline void strcpy(const char *in) {
+        memcpy(str, in, std::min(strlen(in)+1, sizeof(str)));
         str[sizeof(str)-1] = '\0';
     }
 };

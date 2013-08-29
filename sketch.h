@@ -8,6 +8,8 @@
 #ifndef __SKETCH_H
 #define __SKETCH_H
 
+#include <string>
+
 class hGroup;
 class hRequest;
 class hEntity;
@@ -179,8 +181,8 @@ public:
     static const int REMAP_PRIME = 19477;
     int remapCache[REMAP_PRIME];
 
-    char                       impFile[MAX_PATH];
-    char                       impFileRel[MAX_PATH];
+    std::string                impFile;
+    std::string                impFileRel;
     SMesh                      impMesh;
     SShell                     impShell;
     EntityList                 impEntity;
@@ -472,12 +474,12 @@ public:
         bool    useExtraPoints;
         bool    hasNormal;
         bool    hasDistance;
-        char    *description;
+        const char *description;
     } TableEntry;
 
     static const TableEntry Table[];
 
-    static char *DescriptionForRequest(int req);
+    static const char *DescriptionForRequest(int req);
     static void CopyEntityInfo(const TableEntry *te, int extraPoints,
             int *ent, int *req, int *pts, bool *hasNormal, bool *hasDistance);
     static bool GetRequestInfo(int req, int extraPoints,
@@ -705,15 +707,15 @@ public:
     // and for datums and such.
     typedef struct {
         hStyle  h;
-        char    *cnfPrefix;
+        const char    *cnfPrefix;
         DWORD   color;
         double  width;
     } Default;
     static const Default Defaults[];
 
-    static char *CnfColor(char *prefix);
-    static char *CnfWidth(char *prefix);
-    static char *CnfPrefixToName(char *prefix);
+    static char *CnfColor(const char *prefix);
+    static char *CnfWidth(const char *prefix);
+    static char *CnfPrefixToName(const char *prefix);
 
     static void CreateAllDefaultStyles(void);
     static void CreateDefaultStyle(hStyle h);

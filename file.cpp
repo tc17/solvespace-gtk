@@ -7,7 +7,7 @@
 
 #define VERSION_STRING "±²³SolveSpaceREVa"
 
-static int StrStartsWith(char *str, char *start) {
+static int StrStartsWith(const char *str, const char *start) {
     return memcmp(str, start, strlen(start)) == 0;
 }
 
@@ -198,7 +198,7 @@ const SolveSpace::SaveTable SolveSpace::SAVED[] = {
     { 's',  "Style.visible",            'b',    &(SS.sv.s.visible)            },
     { 's',  "Style.exportable",         'b',    &(SS.sv.s.exportable)         },
 
-    { 0, NULL, NULL, NULL     },
+    { 0, NULL, 0, NULL     },
 };
 
 void SolveSpace::SaveUsingTable(int type) {
@@ -242,14 +242,14 @@ void SolveSpace::SaveUsingTable(int type) {
     }
 }
 
-bool SolveSpace::SaveToFile(char *filename) {
+bool SolveSpace::SaveToFile(const std::string& filename) {
     // Make sure all the entities are regenerated up to date, since they
     // will be exported.
     SS.GenerateAll(0, INT_MAX);
 
-    fh = fopen(filename, "wb");
+    fh = fopen(filename.c_str(), "wb");
     if(!fh) {   
-        Error("Couldn't write to file '%s'", filename);
+        Error("Couldn't write to file '%s'", filename.c_str());
         return false;
     }
 
@@ -368,7 +368,7 @@ void SolveSpace::LoadUsingTable(char *key, char *val) {
                 case 'N': ((NameStr *)p)->strcpy(val); break;
 
                 case 'P':
-                    if(strlen(val)+1 < MAX_PATH) strcpy((char *)p, val);
+                    strcpy((char *)p, val);
                     break;
 
                 case 'M': {
@@ -404,13 +404,13 @@ void SolveSpace::LoadUsingTable(char *key, char *val) {
     }
 }
 
-bool SolveSpace::LoadFromFile(char *filename) {
+bool SolveSpace::LoadFromFile(const std::string& filename) {
     allConsistent = false;
     fileLoadError = false;
 
-    fh = fopen(filename, "rb");
+    fh = fopen(filename.c_str(), "rb");
     if(!fh) {   
-        Error("Couldn't read from file '%s'", filename);
+        Error("Couldn't read from file '%s'", filename.c_str());
         return false;
     }
 
@@ -487,7 +487,7 @@ bool SolveSpace::LoadFromFile(char *filename) {
     return true;
 }
 
-bool SolveSpace::LoadEntitiesFromFile(char *file, EntityList *le,
+bool SolveSpace::LoadEntitiesFromFile(const std::string& file, EntityList *le,
                                       SMesh *m, SShell *sh)
 {
     SSurface srf;
@@ -495,7 +495,7 @@ bool SolveSpace::LoadEntitiesFromFile(char *file, EntityList *le,
     SCurve crv;
     ZERO(&crv);
 
-    fh = fopen(file, "rb");
+    fh = fopen(file.c_str(), "rb");
     if(!fh) return false;
 
     le->Clear();
@@ -637,21 +637,19 @@ void SolveSpace::ReloadAllImported(void) {
         g->impMesh.Clear();
         g->impShell.Clear();
 
-        FILE *test = fopen(g->impFile, "rb");
+        FILE *test = fopen(g->impFile.c_str(), "rb");
         if(test) {
             fclose(test); // okay, exists
         } else {
             // It doesn't exist. Perhaps the entire tree has moved, and we
             // can use the relative filename to get us back.
             if(SS.saveFile[0]) {
-                char fromRel[MAX_PATH];
-                strcpy(fromRel, g->impFileRel);
-                MakePathAbsolute(SS.saveFile, fromRel);
-                test = fopen(fromRel, "rb");
+		std::string fromRel = MakePathAbsolute(SS.saveFile, g->impFileRel);
+                test = fopen(fromRel.c_str(), "rb");
                 if(test) {
                     fclose(test);
                     // It worked, this is our new absolute path
-                    strcpy(g->impFile, fromRel);
+                    g->impFile = fromRel;
                 }
             }
         }
@@ -662,14 +660,13 @@ void SolveSpace::ReloadAllImported(void) {
             if(SS.saveFile[0]) {
                 // Record the imported file's name relative to our filename;
                 // if the entire tree moves, then everything will still work
-                strcpy(g->impFileRel, g->impFile);
-                MakePathRelative(SS.saveFile, g->impFileRel);
+                g->impFileRel = MakePathRelative(SS.saveFile, g->impFile);
             } else {
                 // We're not yet saved, so can't make it absolute
-                strcpy(g->impFileRel, g->impFile);
+                g->impFileRel = g->impFile;
             }
         } else {
-            Error("Failed to load imported file '%s'", g->impFile);
+            Error("Failed to load imported file '%s'", g->impFile.c_str());
         }
     }
 }

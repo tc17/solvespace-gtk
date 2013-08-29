@@ -22,10 +22,10 @@ const EntReqTable::TableEntry EntReqTable::Table[] = {
 { Request::CIRCLE,          Entity::CIRCLE,         1,  false,  true,   true,  "circle"         },
 { Request::ARC_OF_CIRCLE,   Entity::ARC_OF_CIRCLE,  3,  false,  true,   false, "arc-of-circle"  },
 { Request::TTF_TEXT,        Entity::TTF_TEXT,       2,  false,  true,   false, "ttf-text"       },
-{ 0 },
+{ 0,                        0,                      0,  false,  false,  false, NULL             },
 };
 
-char *EntReqTable::DescriptionForRequest(int req) {
+const char *EntReqTable::DescriptionForRequest(int req) {
     for(int i = 0; Table[i].reqType; i++) {
         if(req == Table[i].reqType) {
             return Table[i].description;
@@ -174,7 +174,7 @@ void Request::Generate(IdList<Entity,hEntity> *entity,
 }
 
 char *Request::DescriptionString(void) {
-    char *s;
+    const char *s;
     if(h.v == Request::HREQUEST_REFERENCE_XY.v) {
         s = "#XY";
     } else if(h.v == Request::HREQUEST_REFERENCE_YZ.v) {

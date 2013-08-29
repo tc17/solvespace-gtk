@@ -59,7 +59,7 @@ void Group::MenuGroup(int id) {
     g.scale = 1;
 
     if(id >= RECENT_IMPORT && id < (RECENT_IMPORT + MAX_RECENT)) {
-        strcpy(g.impFile, RecentFile[id-RECENT_IMPORT]);
+        g.impFile = RecentFile[id-RECENT_IMPORT];
         id = GraphicsWindow::MNU_GROUP_IMPORT;
     }
 
@@ -189,30 +189,35 @@ void Group::MenuGroup(int id) {
         case GraphicsWindow::MNU_GROUP_IMPORT: {
             g.type = IMPORTED;
             g.opA = SS.GW.activeGroup;
-            if(strlen(g.impFile) == 0) {
-                if(!GetOpenFile(g.impFile, SLVS_EXT, SLVS_PATTERN)) return;
+            if(!g.impFile.empty()) {
+                if(!GetOpenFile(&g.impFile, SLVS_EXT, SLVS_PATTERN)) return;
             }
 
             // Assign the default name of the group based on the name of
             // the imported file.
-            char groupName[MAX_PATH];
-            strcpy(groupName, g.impFile);
-            char *dot = strrchr(groupName, '.');
-            if(dot) *dot = '\0';
+	    int dot = g.impFile.rfind('.');
+	    std::string groupName = 
+		    (dot != std::string::npos) 
+		    ? std::string(g.impFile)
+		    : g.impFile.substr(0, dot);
 
-            char *s, *start = groupName;
-            for(s = groupName; *s; s++) {
-                if(*s == '/' || *s == '\\') {
-                    start = s + 1;
-                } else if(isalnum(*s)) {
+	    size_t start, pos;
+	    for (pos = 0; pos < groupName.size(); ++pos) {
+		char c = groupName[pos];
+	   	if (c == '/' || c == '\\') {
+		    start = pos + 1;
+		} else if (isalnum(c)) {
                     // do nothing, valid character
-                } else {
+		} else {
                     // convert invalid characters (like spaces) to dashes
-                    *s = '-';
-                }
-            }
-            if(strlen(start) > 0) {
-                g.name.strcpy(start);
+		    groupName[pos] = '-';
+		}
+	    }
+
+	    std::string sstart = groupName.substr(start, std::string::npos);
+
+            if(!sstart.empty()) {
+                g.name.strcpy(sstart.c_str());
             } else {
                 g.name.strcpy("import");
             }

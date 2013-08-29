@@ -282,7 +282,7 @@ void StepFileWriter::WriteFooter(void) {
         );
 }
 
-void StepFileWriter::ExportSurfacesTo(char *file) {
+void StepFileWriter::ExportSurfacesTo(const std::string& file) {
     Group *g = SK.GetGroup(SS.GW.activeGroup);
     SShell *shell = &(g->runningShell);
 
@@ -295,9 +295,9 @@ void StepFileWriter::ExportSurfacesTo(char *file) {
         return;
     }
 
-    f = fopen(file, "wb");
+    f = fopen(file.c_str(), "wb");
     if(!f) {
-        Error("Couldn't write to '%s'", file);
+        Error("Couldn't write to '%s'", file.c_str());
         return;
     }
 

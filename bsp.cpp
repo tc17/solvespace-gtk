@@ -49,7 +49,7 @@ void SBsp3::InsertInPlane(bool pos2, STriangle *tr, SMesh *m) {
     Vector tc = ((tr->a).Plus(tr->b).Plus(tr->c)).ScaledBy(1.0/3);
 
     bool onFace = false;
-    bool sameNormal;
+    bool sameNormal = false;
     double maxNormalMag = -1;
 
     Vector lln, trn = tr->Normal();
@@ -157,19 +157,27 @@ void SBsp3::InsertConvexHow(int how, STriMeta meta, Vector *vertex, int n,
 SBsp3 *SBsp3::InsertConvex(STriMeta meta, Vector *vertex, int cnt,
                            SMesh *instead)
 {
-    Vector e01 = (vertex[1]).Minus(vertex[0]);
-    Vector e12 = (vertex[2]).Minus(vertex[1]);
-    Vector out = e01.Cross(e12);
-
 #define MAX_VERTICES 50
-    if(cnt+1 >= MAX_VERTICES) goto triangulate;
-
     int i;
     Vector on[2];
     bool isPos[MAX_VERTICES];
     bool isNeg[MAX_VERTICES];
     bool isOn[MAX_VERTICES];
     int posc = 0, negc = 0, onc = 0;
+    
+    Vector vpos[MAX_VERTICES];
+    Vector vneg[MAX_VERTICES];
+    int npos = 0, nneg = 0;
+
+    Vector inter[2];
+    int inters = 0;
+
+    Vector e01 = (vertex[1]).Minus(vertex[0]);
+    Vector e12 = (vertex[2]).Minus(vertex[1]);
+    Vector out = e01.Cross(e12);
+
+    if(cnt+1 >= MAX_VERTICES) goto triangulate;
+
     for(i = 0; i < cnt; i++) {
         double dt = n.Dot(vertex[i]);
         isPos[i] = isNeg[i] = isOn[i] = false;
@@ -204,13 +212,6 @@ SBsp3 *SBsp3::InsertConvex(STriMeta meta, Vector *vertex, int cnt,
         InsertConvexHow(POS, meta, vertex, cnt, instead);
         return this;
     }
-
-    Vector vpos[MAX_VERTICES];
-    Vector vneg[MAX_VERTICES];
-    int npos = 0, nneg = 0;
-
-    Vector inter[2];
-    int inters = 0;
 
     for(i = 0; i < cnt; i++) {
         int ip = WRAP((i + 1), cnt);

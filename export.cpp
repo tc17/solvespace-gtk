@@ -9,7 +9,7 @@
 #include "solvespace.h"
 #include <png.h>
 
-void SolveSpace::ExportSectionTo(char *filename) {
+void SolveSpace::ExportSectionTo(const std::string& filename) {
     Vector gn = (SS.GW.projRight).Cross(SS.GW.projUp);
     gn = gn.WithMagnitude(1);
 
@@ -109,7 +109,7 @@ void SolveSpace::ExportSectionTo(char *filename) {
     bl.Clear();
 }
 
-void SolveSpace::ExportViewOrWireframeTo(char *filename, bool wireframe) {
+void SolveSpace::ExportViewOrWireframeTo(const std::string& filename, bool wireframe) {
     int i;
     SEdgeList edges;
     ZERO(&edges);
@@ -280,11 +280,11 @@ void SolveSpace::ExportLinesAndMesh(SEdgeList *sel, SBezierList *sbl, SMesh *sm,
             // And calculate lighting for the triangle
             Vector n = tt.Normal().WithMagnitude(1);
             double lighting = SS.ambientIntensity +
-                                  max(0, (SS.lightIntensity[0])*(n.Dot(l0))) +
-                                  max(0, (SS.lightIntensity[1])*(n.Dot(l1)));
-            double r = min(1, REDf  (tt.meta.color)*lighting),
-                   g = min(1, GREENf(tt.meta.color)*lighting),
-                   b = min(1, BLUEf (tt.meta.color)*lighting);
+                                  max(0., (SS.lightIntensity[0])*(n.Dot(l0))) +
+                                  max(0., (SS.lightIntensity[1])*(n.Dot(l1)));
+            double r = min(1., REDf  (tt.meta.color)*lighting),
+                   g = min(1., GREENf(tt.meta.color)*lighting),
+                   b = min(1., BLUEf (tt.meta.color)*lighting);
             tt.meta.color = RGBf(r, g, b);
             smp.AddTriangle(&tt);
         }
@@ -403,7 +403,7 @@ double VectorFileWriter::MmToPts(double mm) {
     return (mm/25.4)*72;
 }
 
-VectorFileWriter *VectorFileWriter::ForFile(char *filename) {
+VectorFileWriter *VectorFileWriter::ForFile(const std::string& filename) {
     VectorFileWriter *ret;
     if(StringEndsIn(filename, ".dxf")) {
         static DxfFileWriter DxfWriter;
@@ -431,13 +431,13 @@ VectorFileWriter *VectorFileWriter::ForFile(char *filename) {
         "filename '%s'; try "
         ".step, .stp, .dxf, .svg, .plt, .hpgl, .pdf, .txt, "
         ".eps, or .ps.",
-            filename);
+            filename.c_str());
         return NULL;
     }
 
-    FILE *f = fopen(filename, "wb");
+    FILE *f = fopen(filename.c_str(), "wb");
     if(!f) {
-        Error("Couldn't write to '%s'", filename);
+        Error("Couldn't write to '%s'", filename.c_str());
         return NULL;
     }
     ret->f = f;
@@ -573,16 +573,16 @@ void VectorFileWriter::BezierAsNonrationalCubic(SBezier *sb, int depth) {
 //-----------------------------------------------------------------------------
 // Export a triangle mesh, in the requested format.
 //-----------------------------------------------------------------------------
-void SolveSpace::ExportMeshTo(char *filename) {
+void SolveSpace::ExportMeshTo(const std::string& filename) {
     SMesh *m = &(SK.GetGroup(SS.GW.activeGroup)->displayMesh);
     if(m->IsEmpty()) {
         Error("Active group mesh is empty; nothing to export.");
         return;
     }
 
-    FILE *f = fopen(filename, "wb");
+    FILE *f = fopen(filename.c_str(), "wb");
     if(!f) {
-        Error("Couldn't write to '%s'", filename);
+        Error("Couldn't write to '%s'", filename.c_str());
         return;
     }
 
@@ -592,7 +592,7 @@ void SolveSpace::ExportMeshTo(char *filename) {
         ExportMeshAsObjTo(f, m);
     } else {
         Error("Can't identify output file type from file extension of "
-              "filename '%s'; try .stl, .obj.", filename);
+              "filename '%s'; try .stl, .obj.", filename.c_str());
     }
 
     fclose(f);
@@ -673,7 +673,12 @@ void SolveSpace::ExportMeshAsObjTo(FILE *f, SMesh *sm) {
 // Export a view of the model as an image; we just take a screenshot, by
 // rendering the view in the usual way and then copying the pixels.
 //-----------------------------------------------------------------------------
-void SolveSpace::ExportAsPngTo(char *filename) {
+void SolveSpace::ExportAsPngTo(const std::string& filename) {
+    BYTE *pixels = NULL;
+    BYTE **rowptrs = NULL;
+    png_struct *png_ptr = NULL;
+    png_info *info_ptr = NULL;
+
     int w = (int)SS.GW.width, h = (int)SS.GW.height;
     // No guarantee that the back buffer contains anything valid right now,
     // so repaint the scene. And hide the toolbar too.
@@ -682,15 +687,14 @@ void SolveSpace::ExportAsPngTo(char *filename) {
     SS.GW.Paint();
     SS.showToolbar = prevShowToolbar;
     
-    FILE *f = fopen(filename, "wb");
+    FILE *f = fopen(filename.c_str(), "wb");
     if(!f) goto err;
 
-    png_struct *png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
-        NULL, NULL, NULL);
+    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     if(!png_ptr) goto err;
 
-    png_info *info_ptr = png_create_info_struct(png_ptr);
-    if(!png_ptr) goto err;
+    info_ptr = png_create_info_struct(png_ptr);
+    if(!info_ptr) goto err;
 
     if(setjmp(png_jmpbuf(png_ptr))) goto err;
 
@@ -708,8 +712,8 @@ void SolveSpace::ExportAsPngTo(char *filename) {
     png_write_info(png_ptr, info_ptr);
 
     // Get the pixel data from the framebuffer
-    BYTE *pixels = (BYTE *)AllocTemporary(3*w*h);
-    BYTE **rowptrs = (BYTE **)AllocTemporary(h*sizeof(BYTE *));
+    pixels = (BYTE *)AllocTemporary(3*w*h);
+    rowptrs = (BYTE **)AllocTemporary(h*sizeof(BYTE *));
     glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 
     int y;
@@ -725,7 +729,7 @@ void SolveSpace::ExportAsPngTo(char *filename) {
     return;
 
 err:    
-    Error("Error writing PNG file '%s'", filename);
+    Error("Error writing PNG file '%s'", filename.c_str());
     if(f) fclose(f);
     return;
 }

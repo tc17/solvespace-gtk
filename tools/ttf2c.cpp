@@ -1,12 +1,13 @@
-#include <windows.h>
+/* #include <windows.h> */
 #include <stdio.h>
-#include <commctrl.h>
+/* #include <commctrl.h> */
 
 //-----------------------------------------------------------------------------
 // Entry point into the program.
 //-----------------------------------------------------------------------------
 int main(void)
 {
+#if 0
     InitCommonControls();
 
     // A monospaced font
@@ -47,6 +48,6 @@ int main(void)
     }
     printf("#include \"bitmapextra.table\"\n");
     printf("};\n");
-
+#endif
     return 0;
 }

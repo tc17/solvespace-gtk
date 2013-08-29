@@ -6,31 +6,17 @@
 //-----------------------------------------------------------------------------
 #include "solvespace.h"
 
-void MakePathRelative(char *basep, char *pathp)
+std::string MakePathRelative(const std::string& base, const std::string& path)
 {
-    int i;
-    char *p;
-    char base[MAX_PATH], path[MAX_PATH], out[MAX_PATH];
-
-    // Convert everything to lowercase
-    p = basep;
-    for(i = 0; *p; p++) {
-        base[i++] = tolower(*p);
-    }
-    base[i++] = '\0';
-    p = pathp;
-    for(i = 0; *p; p++) {
-        path[i++] = tolower(*p);
-    }
-    path[i++] = '\0';
 
     // Find the length of the common prefix
     int com;
     for(com = 0; base[com] && path[com]; com++) {
         if(base[com] != path[com]) break;
     }
-    if(!(base[com] && path[com])) return; // weird, prefix is entire string
-    if(com == 0) return; // maybe on different drive letters?
+    if(!(base[com] && path[com]))
+	    return std::string(path); // weird, prefix is entire string
+    if(com == 0) return std::string(); // maybe on different drive letters?
 
     // Align the common prefix to the nearest slash; otherwise would break
     // on subdirectories or filenames that shared a prefix.
@@ -43,8 +29,8 @@ void MakePathRelative(char *basep, char *pathp)
     int secLen = 0, secStart = 0;
     for(i = com; base[i]; i++) {
         if(base[i] == '/' || base[i] == '\\') {
-            if(secLen == 2 && memcmp(base+secStart, "..", 2)==0) return;
-            if(secLen == 1 && memcmp(base+secStart, ".", 1)==0) return;
+            if(secLen == 2 && base.substr(secStart, 2) == "..") return;
+            if(secLen == 1 && base.substr(secStart, 1) == ".") return;
 
             sections++;
             secLen = 0;
@@ -56,31 +42,24 @@ void MakePathRelative(char *basep, char *pathp)
 
     // For every directory in the prefix of the base, we must go down a
     // directory in the relative path name
-    strcpy(out, "");
+    std::string out;
     for(i = 0; i < sections; i++) {
-        strcat(out, "../");
+	out += "../";
     }
-    strcat(out, path+com);
-
-    strcpy(pathp, out);
+    out += path.substr(com);
+    return out;
 }
 
-void MakePathAbsolute(char *basep, char *pathp) {
-    char out[MAX_PATH];
-    strcpy(out, basep);
+std::string MakePathAbsolute(const std::string &basep, const std::string &pathp) {
+    size_t ind = basep.find_last_of("\\/");
 
-    // Chop off the filename
-    int i;
-    for(i = strlen(out) - 1; i >= 0; i--) {
-        if(out[i] == '\\' || out[i] == '/') break;
-    }
-    if(i < 0) return; // base is not an absolute path, or something?
-    out[i+1] = '\0';
-
-    strcat(out, pathp);
-    GetAbsoluteFilename(out);
-
-    strcpy(pathp, out);
+    if (ind == std::string::npos) return std::string();
+    
+    std::string out = basep.substr(0, ind);
+    out += pathp;
+    out = GetAbsoluteFilename(out);
+    
+    return out;
 }
 
 bool StringAllPrintable(char *str)
@@ -94,18 +73,13 @@ bool StringAllPrintable(char *str)
     return true;
 }
 
-bool StringEndsIn(char *str, char *ending)
+bool StringEndsIn(const std::string& str, const char *ending)
 {
-    int i, ls = strlen(str), le = strlen(ending);
+    size_t ls = str.size(), le = strlen(ending);
 
     if(ls < le) return false;
-        
-    for(i = 0; i < le; i++) {
-        if(tolower(ending[le-i-1]) != tolower(str[ls-i-1])) {
-            return false;
-        }
-    }
-    return true;
+
+    return str.compare(ls - le, le, ending);
 }
 
 void MakeMatrix(double *mat, double a11, double a12, double a13, double a14,
@@ -190,14 +164,14 @@ static void DoStringForMessageBox(char *str, va_list f, bool error)
     // And then display the text with our actual longest line length.
     DoMessageBox(outBuf, rows, cols, error);
 }
-void Error(char *str, ...)
+void Error(const char *str, ...)
 {
     va_list f;
     va_start(f, str);
     DoStringForMessageBox(str, f, true);
     va_end(f);
 }
-void Message(char *str, ...)
+void Message(const char *str, ...)
 {
     va_list f;
     va_start(f, str);

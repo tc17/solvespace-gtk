@@ -194,7 +194,7 @@ void DoMessageBox(char *str, int rows, int cols, BOOL error)
     DestroyWindow(MessageWnd);
 }
 
-void AddContextMenuItem(char *label, int id)
+void AddContextMenuItem(const char *label, int id)
 {
     if(!ContextMenu) ContextMenu = CreatePopupMenu();
 
@@ -258,7 +258,7 @@ void GetTextWindowSize(int *w, int *h)
     GetWindowSize(TextWnd, w, h);
 }
 
-void OpenWebsite(char *url) {
+void OpenWebsite(const char *url) {
     ShellExecute(GraphicsWnd, "open", url, NULL, NULL, SW_SHOWNORMAL);
 }
 
@@ -270,27 +270,27 @@ void ExitNow(void) {
 // Helpers so that we can read/write registry keys from the platform-
 // independent code.
 //-----------------------------------------------------------------------------
-void CnfFreezeString(char *str, char *name)
-    { FreezeStringF(str, FREEZE_SUBKEY, name); }
+void CnfFreezeString(std::string& str, const char *name)
+    { FreezeStringF(str.c_str(), FREEZE_SUBKEY, name); }
 
-void CnfFreezeDWORD(DWORD v, char *name)
+void CnfFreezeDWORD(DWORD v, const char *name)
     { FreezeDWORDF(v, FREEZE_SUBKEY, name); }
 
-void CnfFreezeFloat(float v, char *name)
+void CnfFreezeFloat(float v, const char *name)
     { FreezeDWORDF(*((DWORD *)&v), FREEZE_SUBKEY, name); }
 
-void CnfThawString(char *str, int maxLen, char *name)
-    { ThawStringF(str, maxLen, FREEZE_SUBKEY, name); }
+std::string CnfThawString(const char *name)
+    { return ThawStringF(FREEZE_SUBKEY, name); }
 
-DWORD CnfThawDWORD(DWORD v, char *name)
+DWORD CnfThawDWORD(DWORD v, const char *name)
     { return ThawDWORDF(v, FREEZE_SUBKEY, name); }
 
-float CnfThawFloat(float v, char *name) {
+float CnfThawFloat(float v, const char *name) {
     DWORD d = ThawDWORDF(*((DWORD *)&v), FREEZE_SUBKEY, name); 
     return *((float *)&d);
 }
 
-void SetWindowTitle(char *str) {
+void SetWindowTitle(const char *str) {
     SetWindowText(GraphicsWnd, str);
 }
 
@@ -809,9 +809,10 @@ LRESULT CALLBACK GraphicsWndProc(HWND hwnd, UINT msg, WPARAM wParam,
 //-----------------------------------------------------------------------------
 // Common dialog routines, to open or save a file.
 //-----------------------------------------------------------------------------
-BOOL GetOpenFile(char *file, char *defExtension, char *selPattern)
+bool GetOpenFile(std::string *file, const char *defExtension, const char *selPattern)
 {
     OPENFILENAME ofn;
+    cfile[MAX_PATH];
 
     memset(&ofn, 0, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
@@ -819,14 +820,15 @@ BOOL GetOpenFile(char *file, char *defExtension, char *selPattern)
     ofn.hwndOwner = GraphicsWnd;
     ofn.lpstrFilter = selPattern;
     ofn.lpstrDefExt = defExtension;
-    ofn.lpstrFile = file;
+    ofn.lpstrFile = cfile;
     ofn.nMaxFile = MAX_PATH;
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
 
     EnableWindow(GraphicsWnd, FALSE);
     EnableWindow(TextWnd, FALSE);
 
-    BOOL r = GetOpenFileName(&ofn);
+    bool r = !!GetOpenFileName(&ofn);
+    *file = std::string(cfile);
 
     EnableWindow(TextWnd, TRUE);
     EnableWindow(GraphicsWnd, TRUE);
@@ -834,9 +836,10 @@ BOOL GetOpenFile(char *file, char *defExtension, char *selPattern)
 
     return r;
 }
-BOOL GetSaveFile(char *file, char *defExtension, char *selPattern)
+bool GetSaveFile(std::string *file, const char *defExtension, const char *selPattern)
 {
     OPENFILENAME ofn;
+    cfile[MAX_PATH];
 
     memset(&ofn, 0, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
@@ -844,14 +847,15 @@ BOOL GetSaveFile(char *file, char *defExtension, char *selPattern)
     ofn.hwndOwner = GraphicsWnd;
     ofn.lpstrFilter = selPattern;
     ofn.lpstrDefExt = defExtension;
-    ofn.lpstrFile = file;
+    ofn.lpstrFile = cfile;
     ofn.nMaxFile = MAX_PATH;
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
 
     EnableWindow(GraphicsWnd, FALSE);
     EnableWindow(TextWnd, FALSE);
 
-    BOOL r = GetSaveFileName(&ofn);
+    bool r = !!GetSaveFileName(&ofn);
+    *file = std::string(cfile);
 
     EnableWindow(TextWnd, TRUE);
     EnableWindow(GraphicsWnd, TRUE);

@@ -187,22 +187,30 @@ void FreezeStringF(char *val, char *subKey, char *name)
 /*
  * retrieve a string setting, or return the default if that setting is unavailable
  */
-void ThawStringF(char *val, int max, char *subKey, char *name)
+std::string ThawStringF(char *subKey, char *name)
 {
     HKEY software;
     if(RegOpenKeyEx(HKEY_CURRENT_USER, "Software", 0, KEY_ALL_ACCESS, &software) != ERROR_SUCCESS)
-        return;
+        return std::string();
 
     HKEY sub;
     if(RegOpenKeyEx(software, subKey, 0, KEY_ALL_ACCESS, &sub) != ERROR_SUCCESS)
-        return;
+        return std::string();
 
-    DWORD l = max;
-    if(RegQueryValueEx(sub, name, NULL, NULL, (BYTE *)val, &l) != ERROR_SUCCESS)
-        return;
-    if(l >= (DWORD)max) return;
+    DWORD l;
+    if(RegQueryValueEx(sub, name, NULL, NULL, NULL, &l) != ERROR_SUCCESS)
+        return std::string();
+    
+    BYTE *val = malloc(l); 
+    if (!val) return std::string();
+
+    if (ReqQueryValueEx(sub, name, NULL, NULL, val, &l) != ERROR_SUCCESS)
+        return std::string();
 
     val[l] = '\0';
-    return;
+    std::string rv(val);
+    free(val);
+
+    return rv;
 }
 

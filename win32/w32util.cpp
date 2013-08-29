@@ -15,7 +15,7 @@
 
 static HANDLE PermHeap, TempHeap;
 
-void dbp(char *str, ...)
+void dbp(const char *str, ...)
 {
     va_list f;
     static char buf[1024*50];
@@ -26,11 +26,11 @@ void dbp(char *str, ...)
     OutputDebugString(buf);
 }
 
-void GetAbsoluteFilename(char *file)
+std::string GetAbsoluteFilename(const std::string& path)
 {
     char absoluteFile[MAX_PATH];
-    GetFullPathName(file, sizeof(absoluteFile), absoluteFile, NULL);
-    strcpy(file, absoluteFile);
+    GetFullPathName(path.c_str(), sizeof(absoluteFile), absoluteFile, NULL);
+    return std::string(absoluteFile);
 }
 
 //-----------------------------------------------------------------------------

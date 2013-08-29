@@ -7,17 +7,33 @@
 #ifndef __SOLVESPACE_H
 #define __SOLVESPACE_H
 
-// Debugging functions
-#define oops() do { dbp("oops at line %d, file %s", __LINE__, __FILE__); \
-                    if(0) *(char *)0 = 1; exit(-1); } while(0)
-#ifndef min
-#define min(x, y) ((x) < (y) ? (x) : (y))
-#endif
-#ifndef max
-#define max(x, y) ((x) > (y) ? (x) : (y))
+#if defined(HAVE_CONFIG_H)
+ #include "config.h"
 #endif
 
+// Debugging functions
+#define oops() do { dbp("oops at line %d, file %s", __LINE__, __FILE__); \
+                    exit(-1); } while(0)
+
+#if defined(_WIN32) || defined(_WIN64)
+# ifndef min
+#  define min(x, y) ((x) < (y) ? (x) : (y))
+# endif
+# ifndef max
+#  define max(x, y) ((x) > (y) ? (x) : (y))
+# endif
+#elif defined(HAVE_ALGORITHM)
+# include <algorithm>
+using std::min;
+using std::max;
+#else
+# error "<algorithm> is missing."
+#endif
+
+//FIXME
+#if 0
 #define isnan(x) (((x) != (x)) || (x > 1e11) || (x < -1e11))
+#endif
 
 inline int WRAP(int v, int n) {
     // Clamp it to the range [0, n)
@@ -51,19 +67,31 @@ inline double ffabs(double v) { return (v > 0) ? v : (-v); }
 
 #define isforname(c) (isalnum(c) || (c) == '_' || (c) == '-' || (c) == '#')
 
-typedef unsigned __int64 QWORD;
-typedef signed __int64 SQWORD;
-typedef signed long SDWORD;
-typedef signed short SWORD;
+#include "inttypes.h"
 
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
-#include <windows.h> // required for GL stuff
-#include <gl/gl.h>
-#include <gl/glu.h>
+#include <stdarg.h>
+#include <string>
+
+#if defined(HAVE_GL_GL_H)
+ #include <GL/gl.h>
+#elif defined(HAVE_OPENGL_GL_H)
+ #include <OpenGL/gl.h>
+#endif
+
+#if defined(HAVE_GL_GLU_H)
+ #include <GL/glu.h>
+#elif defined(HAVE_OPENGL_GLU_H)
+ #include <OpenGL/glu.h>
+#endif
+
+#if defined (_WIN32) || defined (_WIN64)
+ #include <windows.h> // required for GL stuff
+#endif
 
 inline double Random(double vmax) {
     return (vmax*rand()) / RAND_MAX;
@@ -73,16 +101,21 @@ class Expr;
 class ExprVector;
 class ExprQuaternion;
 
-
 //================
 // From the platform-specific code.
 #define MAX_RECENT 8
 #define RECENT_OPEN     (0xf000)
 #define RECENT_IMPORT   (0xf100)
-extern char RecentFile[MAX_RECENT][MAX_PATH];
+extern std::string RecentFile[MAX_RECENT];
 void RefreshRecentMenus(void);
 
-int SaveFileYesNoCancel(void);
+enum saveRv {
+	SAVE_YES,
+	SAVE_NO,
+	SAVE_CANCEL
+};
+
+saveRv SaveFileYesNoCancel(void);
 // SolveSpace native file format
 #define SLVS_PATTERN "SolveSpace Models (*.slvs)\0*.slvs\0All Files (*)\0*\0\0"
 #define SLVS_EXT "slvs"
@@ -116,31 +149,31 @@ int SaveFileYesNoCancel(void);
 // Comma-separated value, like a spreadsheet would use
 #define CSV_PATTERN "CSV File (*.csv)\0*.csv\0All Files (*)\0*\0\0"
 #define CSV_EXT "csv"
-BOOL GetSaveFile(char *file, char *defExtension, char *selPattern);
-BOOL GetOpenFile(char *file, char *defExtension, char *selPattern);
-void GetAbsoluteFilename(char *file);
+bool GetSaveFile(std::string *file, const char *defExtension, const char *selPattern);
+bool GetOpenFile(std::string *file, const char *defExtension, const char *selPattern);
+std::string GetAbsoluteFilename(const std::string& path);
 void LoadAllFontFiles(void);
 
-void OpenWebsite(char *url);
+void OpenWebsite(const char *url);
 
-void CheckMenuById(int id, BOOL checked);
-void EnableMenuById(int id, BOOL checked);
+void CheckMenuById(int id, bool checked);
+void EnableMenuById(int id, bool checked);
 
 void ShowGraphicsEditControl(int x, int y, char *s);
 void HideGraphicsEditControl(void);
-BOOL GraphicsEditControlIsVisible(void);
+bool GraphicsEditControlIsVisible(void);
 void ShowTextEditControl(int x, int y, char *s);
 void HideTextEditControl(void);
-BOOL TextEditControlIsVisible(void);
+bool TextEditControlIsVisible(void);
 void MoveTextScrollbarTo(int pos, int maxPos, int page);
 
 #define CONTEXT_SUBMENU     (-1)
 #define CONTEXT_SEPARATOR   (-2)
-void AddContextMenuItem(char *legend, int id);
+void AddContextMenuItem(const char *legend, int id);
 void CreateContextSubmenu(void);
 int ShowContextMenu(void);
 
-void ShowTextWindow(BOOL visible);
+void ShowTextWindow(bool visible);
 void InvalidateText(void);
 void InvalidateGraphics(void);
 void PaintGraphics(void);
@@ -149,23 +182,23 @@ void GetTextWindowSize(int *w, int *h);
 SDWORD GetMilliseconds(void);
 SQWORD GetUnixTime(void);
 
-void dbp(char *str, ...);
+void dbp(const char *str, ...);
 #define DBPTRI(tri) \
     dbp("tri: (%.3f %.3f %.3f) (%.3f %.3f %.3f) (%.3f %.3f %.3f)", \
         CO((tri).a), CO((tri).b), CO((tri).c))
 
-void SetWindowTitle(char *str);
+void SetWindowTitle(const char *str);
 void SetMousePointerToHand(bool yes);
-void DoMessageBox(char *str, int rows, int cols, BOOL error);
+void DoMessageBox(char *str, int rows, int cols, bool error);
 void SetTimerFor(int milliseconds);
 void ExitNow(void);
 
-void CnfFreezeString(char *str, char *name);
-void CnfFreezeDWORD(DWORD v, char *name);
-void CnfFreezeFloat(float v, char *name);
-void CnfThawString(char *str, int maxLen, char *name);
-DWORD CnfThawDWORD(DWORD v, char *name);
-float CnfThawFloat(float v, char *name);
+void CnfFreezeString(const std::string& str, const char *name);
+void CnfFreezeDWORD(DWORD v, const char *name);
+void CnfFreezeFloat(float v, const char *name);
+std::string CnfThawString(char *name);
+DWORD CnfThawDWORD(DWORD v, const char *name);
+float CnfThawFloat(float v, const char *name);
 
 void *AllocTemporary(int n);
 void FreeTemporary(void *p);
@@ -202,7 +235,11 @@ void glxVertex3v(Vector u);
 void glxAxisAlignedQuad(double l, double r, double t, double b);
 void glxAxisAlignedLineLoop(double l, double r, double t, double b);
 #define DEFAULT_TEXT_HEIGHT (11.5)
-#define GLX_CALLBACK __stdcall
+#if defined(_WIN32) || defined(_WIN64)
+# define GLX_CALLBACK __stdcall
+#else
+# define GLX_CALLBACK
+#endif
 typedef void GLX_CALLBACK glxCallbackFptr(void);
 void glxTesselatePolygon(GLUtesselator *gt, SPolygon *p);
 void glxFillPolygon(SPolygon *p);
@@ -212,11 +249,11 @@ void glxDrawEdges(SEdgeList *l, bool endpointsToo);
 void glxDebugMesh(SMesh *m);
 void glxMarkPolygonNormal(SPolygon *p);
 typedef void glxLineFn(void *data, Vector a, Vector b);
-void glxWriteText(char *str, double h, Vector t, Vector u, Vector v,
+void glxWriteText(const char *str, double h, Vector t, Vector u, Vector v,
     glxLineFn *fn, void *fndata);
-void glxWriteTextRefCenter(char *str, double h, Vector t, Vector u, Vector v,
+void glxWriteTextRefCenter(const char *str, double h, Vector t, Vector u, Vector v,
     glxLineFn *fn, void *fndata);
-double glxStrWidth(char *str, double h);
+double glxStrWidth(const char *str, double h);
 double glxStrHeight(double h);
 void glxLockColorTo(DWORD rgb);
 void glxFatLine(Vector a, Vector b, double width);
@@ -242,12 +279,12 @@ void MakeMatrix(double *mat, double a11, double a12, double a13, double a14,
                              double a21, double a22, double a23, double a24,
                              double a31, double a32, double a33, double a34,
                              double a41, double a42, double a43, double a44);
-void MakePathRelative(char *base, char *path);
-void MakePathAbsolute(char *base, char *path);
+std::string MakePathRelative(const std::string& base, std::string& path);
+std::string MakePathAbsolute(const std::string& base, const std::string& path);
 bool StringAllPrintable(char *str);
-bool StringEndsIn(char *str, char *ending);
-void Message(char *str, ...);
-void Error(char *str, ...);
+bool StringEndsIn(const std::string& str, const char *ending);
+void Message(const char *str, ...);
+void Error(const char *str, ...);
 
 class System {
 public:
@@ -345,7 +382,7 @@ public:
         int x, y;
     } IntPoint;
 
-    char    fontFile[MAX_PATH];
+    std::string fontFile;
     NameStr name;
     bool    loaded;
 
@@ -405,7 +442,7 @@ public:
 
 class StepFileWriter {
 public:
-    void ExportSurfacesTo(char *filename);
+    void ExportSurfacesTo(const std::string& filename);
     void WriteHeader(void);
     int ExportCurve(SBezier *sb);
     int ExportCurveLoop(SBezierLoop *loop, bool inner);
@@ -426,7 +463,7 @@ public:
 
     static double MmToPts(double mm);
 
-    static VectorFileWriter *ForFile(char *file);
+    static VectorFileWriter *ForFile(const std::string& file);
 
     void Output(SBezierLoopSetSet *sblss, SMesh *sm);
 
@@ -651,8 +688,8 @@ public:
 
     char *MmToString(double v);
     double ExprToMm(Expr *e);
-    double StringToMm(char *s);
-    char *UnitName(void);
+    double StringToMm(const char *s);
+    const char *UnitName(void);
     double MmPerUnit(void);
     int UnitDigitsAfterDecimal(void);
     void SetUnitDigitsAfterDecimal(int v);
@@ -674,14 +711,14 @@ public:
     // loaded when we have import groups.
     FILE        *fh;
     void AfterNewFile(void);
-    static void RemoveFromRecentList(char *file);
-    static void AddToRecentList(char *file);
-    char saveFile[MAX_PATH];
+    static void RemoveFromRecentList(const std::string& file);
+    static void AddToRecentList(const std::string& file);
+    std::string saveFile;
     bool fileLoadError;
     bool unsaved;
     typedef struct {
         char     type;
-        char    *desc;
+        const char *desc;
         char     fmt;
         void    *ptr;
     } SaveTable;
@@ -703,18 +740,18 @@ public:
     void UpdateWindowTitle(void);
     void ClearExisting(void);
     void NewFile(void);
-    bool SaveToFile(char *filename);
-    bool LoadFromFile(char *filename);
-    bool LoadEntitiesFromFile(char *filename, EntityList *le,
+    bool SaveToFile(const std::string& filename);
+    bool LoadFromFile(const std::string& filename);
+    bool LoadEntitiesFromFile(const std::string& filename, EntityList *le,
                                 SMesh *m, SShell *sh);
     void ReloadAllImported(void);
     // And the various export options
-    void ExportAsPngTo(char *file);
-    void ExportMeshTo(char *file);
+    void ExportAsPngTo(const std::string& file);
+    void ExportMeshTo(const std::string& file);
     void ExportMeshAsStlTo(FILE *f, SMesh *sm);
     void ExportMeshAsObjTo(FILE *f, SMesh *sm);
-    void ExportViewOrWireframeTo(char *file, bool wireframe);
-    void ExportSectionTo(char *file);
+    void ExportViewOrWireframeTo(const std::string& filename, bool wireframe);
+    void ExportSectionTo(const std::string& file);
     void ExportWireframeCurves(SEdgeList *sel, SBezierList *sbl,
                                VectorFileWriter *out);
     void ExportLinesAndMesh(SEdgeList *sel, SBezierList *sbl, SMesh *sm,

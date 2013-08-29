@@ -15,7 +15,7 @@ static bool ColorLocked;
 static bool DepthOffsetLocked;
 
 #define FONT_SCALE(h) ((h)/22.0)
-double glxStrWidth(char *str, double h)
+double glxStrWidth(const char *str, double h)
 {
     int w = 0;
     for(; *str; str++) {
@@ -32,7 +32,7 @@ double glxStrHeight(double h)
     // The characters have height ~22, as they appear in the table.
     return 22.0*FONT_SCALE(h)/SS.GW.scale;
 }
-void glxWriteTextRefCenter(char *str, double h, Vector t, Vector u, Vector v, 
+void glxWriteTextRefCenter(const char *str, double h, Vector t, Vector u, Vector v, 
                                 glxLineFn *fn, void *fndata)
 {
     u = u.WithMagnitude(1);
@@ -61,7 +61,7 @@ static void LineDrawCallback(void *fndata, Vector a, Vector b)
     glEnd();
 }
 
-void glxWriteText(char *str, double h, Vector t, Vector u, Vector v,
+void glxWriteText(const char *str, double h, Vector t, Vector u, Vector v,
                     glxLineFn *fn, void *fndata)
 {
     if(!fn) fn = LineDrawCallback;
@@ -202,9 +202,9 @@ void glxColorRGBa(DWORD rgb, double a)
     if(!ColorLocked) glColor4d(REDf(rgb), GREENf(rgb), BLUEf(rgb), a);
 }
 
-static void Stipple(BOOL forSel)
+static void Stipple(bool forSel)
 {
-    static BOOL Init;
+    static bool Init;
     const int BYTES = (32*32)/8;
     static GLubyte HoverMask[BYTES];
     static GLubyte SelMask[BYTES];
@@ -222,7 +222,7 @@ static void Stipple(BOOL forSel)
                 }
             }
         }
-        Init = TRUE;
+        Init = true;
     }
 
     glEnable(GL_POLYGON_STIPPLE);
@@ -233,7 +233,7 @@ static void Stipple(BOOL forSel)
     }
 }
 
-static void StippleTriangle(STriangle *tr, BOOL s, DWORD rgb)
+static void StippleTriangle(STriangle *tr, bool s, DWORD rgb)
 {
     glEnd();
     glDisable(GL_LIGHTING);
@@ -296,10 +296,10 @@ void glxFillMesh(int specColor, SMesh *m, DWORD h, DWORD s1, DWORD s2)
         if((s1 != 0 && tr->meta.face == s1) || 
            (s2 != 0 && tr->meta.face == s2))
         {
-            StippleTriangle(tr, TRUE, rgbSelected);
+            StippleTriangle(tr, true, rgbSelected);
         }
         if(h != 0 && tr->meta.face == h) {
-            StippleTriangle(tr, FALSE, rgbHovered);
+            StippleTriangle(tr, false, rgbHovered);
         }
     }
     glEnd();
