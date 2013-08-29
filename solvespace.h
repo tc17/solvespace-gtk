@@ -416,7 +416,7 @@ public:
 
     void LoadGlyph(int index);
     bool LoadFontFromFile(bool nameOnly);
-    char *FontFileBaseName(void);
+    std::string FontFileBaseName(void);
    
     void Flush(void);
     void Handle(int *dx, int x, int y, bool onCurve);

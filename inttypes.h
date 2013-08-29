@@ -14,11 +14,12 @@ typedef unsigned long DWORD;
 typedef unsigned char BYTE;
 #elif defined(HAVE_STDINT_H)
 # include <stdint.h>
-typedef uint64_t QWORD;
 typedef int64_t SQWORD;
+typedef uint64_t QWORD;
 typedef int32_t SDWORD;
-typedef int16_t SWORD;
 typedef uint32_t DWORD;
+typedef int16_t SWORD;
+typedef uint16_t WORD;
 typedef uint8_t BYTE;
 #else
 # error "stdint.h is missing."

@@ -68,7 +68,7 @@ public:
     typedef struct {
         bool    *var;
         BYTE    *icon;
-        char    *tip;
+        const char *tip;
     } HideShowIcon;
     static HideShowIcon hideShowIcons[];
     static bool SPACER;

@@ -4,7 +4,7 @@
 // Copyright 2008-2013 Jonathan Westhues.
 //-----------------------------------------------------------------------------
 #include "solvespace.h"
-#include "obj/icons-proto.h"
+#include "icons-proto.h"
 #include <stdarg.h>
 
 const TextWindow::Color TextWindow::fgColors[] = {
@@ -36,13 +36,13 @@ TextWindow::HideShowIcon TextWindow::hideShowIcons[] = {
     { &(SS.GW.showPoints),      Icon_point,         "points"                         },
     { &(SS.GW.showConstraints), Icon_constraint,    "constraints and dimensions"     },
     { &(SS.GW.showFaces),       Icon_faces,         "XXX - special cased"            },
-    { &SPACER, 0 },
+    { &SPACER,                  0,                  NULL                             },
     { &(SS.GW.showShaded),      Icon_shaded,        "shaded view of solid model"     },
     { &(SS.GW.showEdges),       Icon_edges,         "edges of solid model"           },
     { &(SS.GW.showMesh),        Icon_mesh,          "triangle mesh of solid model"   },
-    { &SPACER, 0 },
+    { &SPACER,                  0,                  NULL                             },
     { &(SS.GW.showHdnLines),    Icon_hidden_lines,  "hidden lines"                   },
-    { 0, 0 },
+    { 0,                        0,                  NULL                             },
 };
 
 void TextWindow::MakeColorTable(const Color *in, float *out) {
@@ -181,7 +181,7 @@ void TextWindow::Printf(bool halfLine, const char *fmt, ...) {
                     break;
                 }
                 case 'c': {
-                    char v = va_arg(vl, char);
+                    char v = va_arg(vl, int);
                     if(v == 0) {
                         strcpy(buf, "");
                     } else {
@@ -437,8 +437,8 @@ void TextWindow::DrawOrHitTestIcons(int how, double mx, double my)
             ox += 3;
             oy -= 3;
             int tw = (strlen(str) + 1)*CHAR_WIDTH;
-            ox = min(ox, (width - 25) - tw);
-            oy = max(oy, 5);
+            ox = min(ox, (double)((width - 25) - tw));
+            oy = max(oy, 5.);
 
             glxCreateBitmapFont();
             glLineWidth(1);

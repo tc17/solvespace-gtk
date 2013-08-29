@@ -4,7 +4,7 @@
 AC_PREREQ([2.68])
 AC_INIT([SolverSpace], [VERSION], [BUG-REPORT-ADDRESS])
 AM_INIT_AUTOMAKE
-AC_CONFIG_SRCDIR([groupmesh.cpp])
+AC_CONFIG_SRCDIR([solvespace.cpp])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -20,6 +20,11 @@ AX_CHECK_GLU
 AS_IF([test "x$no_glu" == "xyes"], [AC_MSG_ERROR([GLU is missing.])])
 
 PKG_CHECK_MODULES([PNG], [libpng])
+PKG_CHECK_MODULES([GTKMM], [gtkmm-3.0],
+		  [AC_DEFINE([HAVE_GTKMM], [1], [have gtkmm])
+		   AM_CONDITIONAL([HAVE_GTKMM], [true]) ],
+		   [AM_CONDITIONAL([HAVE_GTKMM], [false])])
+AX_PERL_MODULE_VERSION([GD 2.46], [], AC_MSG_ERROR([GD is missing.]))
 
 # Checks for header files.
 AC_CHECK_HEADERS([malloc.h stdlib.h string.h strings.h unistd.h limits.h algorithm])
@@ -34,6 +39,7 @@ AC_TYPE_SIZE_T
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([floor memmove memset pow sqrt strchr strrchr])
 
+#
 AC_CONFIG_FILES([Makefile
                  tools/Makefile])
 AC_OUTPUT

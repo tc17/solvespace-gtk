@@ -35,7 +35,7 @@ void TtfFontList::PlotString(char *font, char *str, double spacing,
     int i;
     for(i = 0; i < l.n; i++) {
         TtfFont *tf = &(l.elem[i]);
-        if(strcmp(tf->FontFileBaseName(), font)==0) {
+        if(strcmp(tf->FontFileBaseName().c_str(), font)==0) {
             tf->LoadFontFromFile(false);
             tf->PlotString(str, spacing, sbl, origin, u, v);
             return;
@@ -223,12 +223,11 @@ void TtfFont::LoadGlyph(int index) {
 // Return the basename of our font filename; that's how the requests and
 // entities that reference us will store it.
 //-----------------------------------------------------------------------------
-char *TtfFont::FontFileBaseName(void) {
-    char *sb = strrchr(fontFile, '\\');
-    char *sf = strrchr(fontFile, '/');
-    char *s = sf ? sf : sb;
-    if(!s) return "";
-    return s + 1;
+std::string TtfFont::FontFileBaseName(void) {
+    size_t s = fontFile.find_last_of("\\/");
+    if (s == std::string::npos) return std::string();
+
+    return fontFile.substr(s+1, std::string::npos);
 }
 
 //-----------------------------------------------------------------------------
@@ -241,7 +240,7 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
 
     int i;
     
-    fh = fopen(fontFile, "rb");
+    fh = fopen(fontFile.c_str(), "rb");
     if(!fh) {
         return false;
     }
@@ -432,7 +431,7 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
 
         WORD  hmtxAdvanceWidth;
         SWORD hmtxLsb;
-        for(i = 0; i < min(glyphs, hheaNumberOfMetrics); i++) {
+        for(i = 0; i < min(glyphs, static_cast<int>(hheaNumberOfMetrics)); i++) {
             hmtxAdvanceWidth = GetWORD();
             hmtxLsb          = (SWORD)GetWORD();
 

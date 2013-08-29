@@ -2,11 +2,11 @@
 
 use GD;
 
-my ($out, $proto) = @ARGV;
+my ($src, $out, $proto) = @ARGV;
 open(OUT, ">$out") or die "$out: $!";
 open(PROTO, ">$proto") or die "$proto: $!";
 
-for $file (<icons/*.png>) {
+for $file (<$src/*.png>) {
     next if $file =~ /char-/;
 
     $file =~ m#.*/(.*)\.png#;

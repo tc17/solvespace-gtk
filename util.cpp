@@ -16,22 +16,23 @@ std::string MakePathRelative(const std::string& base, const std::string& path)
     }
     if(!(base[com] && path[com]))
 	    return std::string(path); // weird, prefix is entire string
-    if(com == 0) return std::string(); // maybe on different drive letters?
+    if(com == 0) return std::string(path); // maybe on different drive letters?
 
     // Align the common prefix to the nearest slash; otherwise would break
     // on subdirectories or filenames that shared a prefix.
     while(com >= 1 && base[com-1] != '/' && base[com-1] != '\\') {
         com--;
     }
-    if(com == 0) return;
+    if(com == 0) return std::string(path);
 
     int sections = 0;
     int secLen = 0, secStart = 0;
-    for(i = com; base[i]; i++) {
+    for(int i = com; base[i]; i++) {
         if(base[i] == '/' || base[i] == '\\') {
-            if(secLen == 2 && base.substr(secStart, 2) == "..") return;
-            if(secLen == 1 && base.substr(secStart, 1) == ".") return;
-
+            if(secLen == 2 && base.substr(secStart, 2) == "..")
+		    return std::string(path);
+            if(secLen == 1 && base.substr(secStart, 1) == ".")
+		    return std::string(path);
             sections++;
             secLen = 0;
             secStart = i+1;
@@ -43,7 +44,7 @@ std::string MakePathRelative(const std::string& base, const std::string& path)
     // For every directory in the prefix of the base, we must go down a
     // directory in the relative path name
     std::string out;
-    for(i = 0; i < sections; i++) {
+    for(int i = 0; i < sections; i++) {
 	out += "../";
     }
     out += path.substr(com);
@@ -109,7 +110,7 @@ void MakeMatrix(double *mat, double a11, double a12, double a13, double a14,
 // Word-wrap the string for our message box appropriately, and then display
 // that string.
 //-----------------------------------------------------------------------------
-static void DoStringForMessageBox(char *str, va_list f, bool error)
+static void DoStringForMessageBox(const char *str, va_list f, bool error)
 {
     char inBuf[1024*50];
     vsprintf(inBuf, str, f);
