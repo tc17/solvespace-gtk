@@ -10,9 +10,11 @@
 
 class TextWindow {
 public:
-    static const int MAX_COLS = 100;
-    static const int MIN_COLS = 45;
-    static const int MAX_ROWS = 2000;
+    enum {
+    	MAX_COLS = 100,
+    	MIN_COLS = 45,
+    	MAX_ROWS = 2000,
+    };
 
 #ifndef RGB
 #define RGB(r, g, b) ((r) | ((g) << 8) | ((b) << 16))
@@ -39,10 +41,12 @@ public:
     static const int LINE_HEIGHT    = 20;
     static const int LEFT_MARGIN    = 6;
 
-    static const int CHECK_FALSE    = 0x80;
-    static const int CHECK_TRUE     = 0x81;
-    static const int RADIO_FALSE    = 0x82;
-    static const int RADIO_TRUE     = 0x83;
+    enum {
+    	CHECK_FALSE    = 0x80,
+    	CHECK_TRUE     = 0x81,
+    	RADIO_FALSE    = 0x82,
+    	RADIO_TRUE     = 0x83,
+    };
 
     int scrollPos;      // The scrollbar position, in half-row units
     int halfRows;       // The height of our window, in half-row units
@@ -80,9 +84,11 @@ public:
     void MouseLeave(void);
     void ScrollbarEvent(int newPos);
 
-    static const int PAINT = 0;
-    static const int HOVER = 1;
-    static const int CLICK = 2;
+    enum {
+    	PAINT = 0,
+    	HOVER = 1,
+    	CLICK = 2,
+    };
     void DrawOrHitTestIcons(int how, double mx, double my);
     void TimerCallback(void);
     Point2d oldMousePos;
@@ -133,53 +139,55 @@ public:
     } ShownState;
     ShownState shown;
 
-    static const int EDIT_NOTHING               = 0;
-    // For multiple groups
-    static const int EDIT_TIMES_REPEATED        = 1;
-    static const int EDIT_GROUP_NAME            = 2;
-    static const int EDIT_GROUP_SCALE           = 3;
-    static const int EDIT_GROUP_COLOR           = 4;
-    // For the configuraiton screen
-    static const int EDIT_LIGHT_DIRECTION       = 100;
-    static const int EDIT_LIGHT_INTENSITY       = 101;
-    static const int EDIT_COLOR                 = 102;
-    static const int EDIT_CHORD_TOLERANCE       = 103;
-    static const int EDIT_MAX_SEGMENTS          = 104;
-    static const int EDIT_CAMERA_TANGENT        = 105;
-    static const int EDIT_GRID_SPACING          = 106;
-    static const int EDIT_DIGITS_AFTER_DECIMAL  = 107;
-    static const int EDIT_EXPORT_SCALE          = 108;
-    static const int EDIT_EXPORT_OFFSET         = 109;
-    static const int EDIT_CANVAS_SIZE           = 110;
-    static const int EDIT_G_CODE_DEPTH          = 120;
-    static const int EDIT_G_CODE_PASSES         = 121;
-    static const int EDIT_G_CODE_FEED           = 122;
-    static const int EDIT_G_CODE_PLUNGE_FEED    = 123;
-    // For TTF text
-    static const int EDIT_TTF_TEXT              = 300;
-    // For the step dimension screen
-    static const int EDIT_STEP_DIM_FINISH       = 400;
-    static const int EDIT_STEP_DIM_STEPS        = 401;
-    // For the styles stuff
-    static const int EDIT_STYLE_WIDTH           = 500;
-    static const int EDIT_STYLE_TEXT_HEIGHT     = 501;
-    static const int EDIT_STYLE_TEXT_ANGLE      = 502;
-    static const int EDIT_STYLE_COLOR           = 503;
-    static const int EDIT_STYLE_FILL_COLOR      = 504;
-    static const int EDIT_STYLE_NAME            = 505;
-    static const int EDIT_BACKGROUND_COLOR      = 506;
-    static const int EDIT_BACKGROUND_IMG_SCALE  = 507;
-    // For paste transforming
-    static const int EDIT_PASTE_TIMES_REPEATED  = 600;
-    static const int EDIT_PASTE_ANGLE           = 601;
-    static const int EDIT_PASTE_SCALE           = 602;
-    // For view
-    static const int EDIT_VIEW_SCALE            = 700;
-    static const int EDIT_VIEW_ORIGIN           = 701;
-    static const int EDIT_VIEW_PROJ_RIGHT       = 702;
-    static const int EDIT_VIEW_PROJ_UP          = 703;
-    // For tangent arc
-    static const int EDIT_TANGENT_ARC_RADIUS    = 800;
+    enum {
+	    EDIT_NOTHING               = 0,
+	    // For multiple groups
+	    EDIT_TIMES_REPEATED        = 1,
+	    EDIT_GROUP_NAME            = 2,
+	    EDIT_GROUP_SCALE           = 3,
+	    EDIT_GROUP_COLOR           = 4,
+	    // For the configuraiton screen
+	    EDIT_LIGHT_DIRECTION       = 100,
+	    EDIT_LIGHT_INTENSITY       = 101,
+	    EDIT_COLOR                 = 102,
+	    EDIT_CHORD_TOLERANCE       = 103,
+	    EDIT_MAX_SEGMENTS          = 104,
+	    EDIT_CAMERA_TANGENT        = 105,
+	    EDIT_GRID_SPACING          = 106,
+	    EDIT_DIGITS_AFTER_DECIMAL  = 107,
+	    EDIT_EXPORT_SCALE          = 108,
+	    EDIT_EXPORT_OFFSET         = 109,
+	    EDIT_CANVAS_SIZE           = 110,
+	    EDIT_G_CODE_DEPTH          = 120,
+	    EDIT_G_CODE_PASSES         = 121,
+	    EDIT_G_CODE_FEED           = 122,
+	    EDIT_G_CODE_PLUNGE_FEED    = 123,
+	    // For TTF text
+	    EDIT_TTF_TEXT              = 300,
+	    // For the step dimension screen
+	    EDIT_STEP_DIM_FINISH       = 400,
+	    EDIT_STEP_DIM_STEPS        = 401,
+	    // For the styles stuff
+	    EDIT_STYLE_WIDTH           = 500,
+	    EDIT_STYLE_TEXT_HEIGHT     = 501,
+	    EDIT_STYLE_TEXT_ANGLE      = 502,
+	    EDIT_STYLE_COLOR           = 503,
+	    EDIT_STYLE_FILL_COLOR      = 504,
+	    EDIT_STYLE_NAME            = 505,
+	    EDIT_BACKGROUND_COLOR      = 506,
+	    EDIT_BACKGROUND_IMG_SCALE  = 507,
+	    // For paste transforming
+	    EDIT_PASTE_TIMES_REPEATED  = 600,
+	    EDIT_PASTE_ANGLE           = 601,
+	    EDIT_PASTE_SCALE           = 602,
+	    // For view
+	    EDIT_VIEW_SCALE            = 700,
+	    EDIT_VIEW_ORIGIN           = 701,
+	    EDIT_VIEW_PROJ_RIGHT       = 702,
+	    EDIT_VIEW_PROJ_UP          = 703,
+	    // For tangent arc
+	    EDIT_TANGENT_ARC_RADIUS    = 800,
+    };
     struct {
         bool        showAgain;
         int         meaning;

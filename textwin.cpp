@@ -834,7 +834,7 @@ void TextWindow::Paint(void) {
             if(ltop < (scrollPos-1)) continue;
             if(ltop > scrollPos+halfRows) break;
 
-            for(c = 0; c < min((width/CHAR_WIDTH)+1, MAX_COLS); c++) {
+            for(c = 0; c < min((width/CHAR_WIDTH)+1, int(MAX_COLS)); c++) {
                 int x = LEFT_MARGIN + c*CHAR_WIDTH;
                 int y = (ltop-scrollPos)*(LINE_HEIGHT/2) + 4;
 

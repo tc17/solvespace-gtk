@@ -184,9 +184,11 @@ public:
     // therefore must get new hSCurves assigned. For the curves in A and B,
     // we use newH to record their new handle in C.
     hSCurve         newH;
-    static const int FROM_A             = 100;
-    static const int FROM_B             = 200;
-    static const int FROM_INTERSECTION  = 300;
+    enum {
+    	FROM_A             = 100,
+    	FROM_B             = 200,
+    	FROM_INTERSECTION  = 300,
+    };
     int             source;
 
     bool            isExact;
@@ -380,10 +382,12 @@ public:
     // Definitions when classifying regions of a surface; it is either inside,
     // outside, or coincident (with parallel or antiparallel normal) with a
     // shell.
-    static const int INSIDE     = 100;
-    static const int OUTSIDE    = 200;
-    static const int COINC_SAME = 300;
-    static const int COINC_OPP  = 400;
+    enum {
+    	INSIDE     = 100,
+    	OUTSIDE    = 200,
+    	COINC_SAME = 300,
+    	COINC_OPP  = 400,
+    };
     static const double DOTP_TOL;
     int ClassifyRegion(Vector edge_n, Vector inter_surf_n, Vector edge_surf_n);
     bool ClassifyEdge(int *indir, int *outdir,

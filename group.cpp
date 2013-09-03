@@ -52,8 +52,7 @@ bool Group::IsVisible(void) {
 }
 
 void Group::MenuGroup(int id) {
-    Group g;
-    ZERO(&g);
+    Group g = Group();
     g.visible = true;
     g.color = RGB(100, 100, 100);
     g.scale = 1;

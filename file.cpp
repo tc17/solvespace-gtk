@@ -35,8 +35,7 @@ void SolveSpace::ClearExisting(void) {
 }
 
 hGroup SolveSpace::CreateDefaultDrawingGroup(void) {
-    Group g;
-    ZERO(&g);
+    Group g = Group();
 
     // And an empty group, for the first stuff the user draws.
     g.visible = true;

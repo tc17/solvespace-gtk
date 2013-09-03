@@ -73,10 +73,11 @@ public:
 class SPoint {
 public:
     int     tag;
-
-    static const int UNKNOWN = 0;
-    static const int NOT_EAR = 1;
-    static const int EAR     = 2;
+    enum {
+    	UNKNOWN = 0,
+    	NOT_EAR = 1,
+    	EAR     = 2,
+    };
     int     ear;
 
     Vector  p;

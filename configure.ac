@@ -20,10 +20,11 @@ AX_CHECK_GLU
 AS_IF([test "x$no_glu" == "xyes"], [AC_MSG_ERROR([GLU is missing.])])
 
 PKG_CHECK_MODULES([PNG], [libpng])
-PKG_CHECK_MODULES([GTKMM], [gtkmm-3.0],
-		  [AC_DEFINE([HAVE_GTKMM], [1], [have gtkmm])
-		   AM_CONDITIONAL([HAVE_GTKMM], [true]) ],
-		   [AM_CONDITIONAL([HAVE_GTKMM], [false])])
+#PKG_CHECK_MODULES([GTKMM], [gtkmm-3.0],
+#		  [AC_DEFINE([HAVE_GTKMM], [1], [have gtkmm])
+#		   AM_CONDITIONAL([HAVE_GTKMM], [true]) ],
+#		   [AM_CONDITIONAL([HAVE_GTKMM], [false])])
+PKG_CHECK_MODULES([GTKMM], [gtkmm-3.0])
 AX_PERL_MODULE_VERSION([GD 2.46], [], AC_MSG_ERROR([GD is missing.]))
 
 # Checks for header files.
