@@ -8,7 +8,7 @@
 #ifndef __SKETCH_H
 #define __SKETCH_H
 
-#include <string>
+#include "nihstring.h"
 
 class hGroup;
 class hRequest;
@@ -181,8 +181,8 @@ public:
     static const int REMAP_PRIME = 19477;
     int remapCache[REMAP_PRIME];
 
-    std::string                impFile;
-    std::string                impFileRel;
+    NihString                  impFile;
+    NihString                  impFileRel;
     SMesh                      impMesh;
     SShell                     impShell;
     EntityList                 impEntity;

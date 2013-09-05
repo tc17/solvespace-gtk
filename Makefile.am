@@ -15,6 +15,8 @@ solvespace_SOURCES = bsp.cpp clipboard.cpp confscreen.cpp constraint.cpp constra
 solvespace_SOURCES += srf/boolean.cpp srf/curve.cpp srf/merge.cpp srf/ratpoly.cpp srf/raycast.cpp srf/surface.cpp \
 		      srf/surface.h srf/surfinter.cpp srf/triangulate.cpp
 
+solvespace_SOURCES += nihstring.h nihstring.cpp
+
 nodist_solvespace_SOURCES = icons.h icons-proto.h
 
 AM_CXXFLAGS += $(GL_CFLAGS) $(GLU_CFLAGS) $(PNG_CFLAGS) $(GTKMM_CFLAGS)

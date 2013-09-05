@@ -643,26 +643,29 @@ void SolveSpace::ReloadAllImported(void) {
             // It doesn't exist. Perhaps the entire tree has moved, and we
             // can use the relative filename to get us back.
             if(SS.saveFile[0]) {
-		std::string fromRel = MakePathAbsolute(SS.saveFile, g->impFileRel);
+		std::string fromRel = MakePathAbsolute(SS.saveFile, g->impFileRel.std_str());
                 test = fopen(fromRel.c_str(), "rb");
                 if(test) {
                     fclose(test);
                     // It worked, this is our new absolute path
-                    g->impFile = fromRel;
+		    g->impFile.release();
+                    g->impFile = NihString::newNihString(fromRel);
                 }
             }
         }
 
-        if(LoadEntitiesFromFile(g->impFile,
+        if(LoadEntitiesFromFile(g->impFile.std_str(),
                         &(g->impEntity), &(g->impMesh), &(g->impShell)))
         {
             if(SS.saveFile[0]) {
                 // Record the imported file's name relative to our filename;
                 // if the entire tree moves, then everything will still work
-                g->impFileRel = MakePathRelative(SS.saveFile, g->impFile);
+		g->impFileRel.release();
+                g->impFileRel = NihString::newNihString(MakePathRelative(SS.saveFile, g->impFile.std_str()));
             } else {
                 // We're not yet saved, so can't make it absolute
-                g->impFileRel = g->impFile;
+		g->impFileRel.release();
+                g->impFileRel = g->impFile.retain();
             }
         } else {
             Error("Failed to load imported file '%s'", g->impFile.c_str());

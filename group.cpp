@@ -34,6 +34,9 @@ void Group::Clear(void) {
     impEntity.Clear();
     // remap is the only one that doesn't get recreated when we regen
     remap.Clear();
+
+    impFile.release();
+    impFileRel.release();
 }
 
 void Group::AddParam(IdList<Param,hParam> *param, hParam hp, double v) {
@@ -58,7 +61,7 @@ void Group::MenuGroup(int id) {
     g.scale = 1;
 
     if(id >= RECENT_IMPORT && id < (RECENT_IMPORT + MAX_RECENT)) {
-        g.impFile = RecentFile[id-RECENT_IMPORT];
+        g.impFile = NihString::newNihString(RecentFile[id-RECENT_IMPORT]);
         id = GraphicsWindow::MNU_GROUP_IMPORT;
     }
 
@@ -189,16 +192,20 @@ void Group::MenuGroup(int id) {
             g.type = IMPORTED;
             g.opA = SS.GW.activeGroup;
             if(!g.impFile.empty()) {
-                if(!GetOpenFile(&g.impFile, SLVS_EXT, SLVS_PATTERN)) return;
+		std::string impFile;
+                if(!GetOpenFile(&impFile, SLVS_EXT, SLVS_PATTERN)) return;
+		g.impFile.release();
+		g.impFile = NihString::newNihString(impFile);
             }
 
             // Assign the default name of the group based on the name of
             // the imported file.
-	    int dot = g.impFile.rfind('.');
+	    std::string impFile = g.impFile.std_str();
+	    int dot = impFile.rfind('.');
 	    std::string groupName = 
 		    (dot != std::string::npos) 
-		    ? std::string(g.impFile)
-		    : g.impFile.substr(0, dot);
+		    ? std::string(impFile)
+		    : impFile.substr(0, dot);
 
 	    size_t start, pos;
 	    for (pos = 0; pos < groupName.size(); ++pos) {

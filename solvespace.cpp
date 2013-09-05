@@ -99,7 +99,7 @@ void SolveSpace::Init(char *cmdLine) {
     // command line.
     NewFile();
     AfterNewFile();
-    if(strlen(cmdLine) != 0) {
+    if(cmdLine && strlen(cmdLine) != 0) {
         if(LoadFromFile(cmdLine)) {
             saveFile = std::string(cmdLine);
         } else {
