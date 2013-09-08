@@ -5,12 +5,6 @@
 #include <gdk/gdkx.h>
 #include <GL/glx.h>
 
-extern Gtk::Widget *textWidget;
-extern Gtk::Widget *graphicsWidget;
-
-extern Gtk::Window *graphicsWin;
-extern Gtk::Window *textWin;
-
 enum Button {
 	BUTTON_LEFT = 1,
 	BUTTON_MIDDLE = 2,
@@ -47,17 +41,17 @@ public:
 
 class Glx : public Gtk::Widget
 {
-	Display* _xdisplay;
-	XVisualInfo* _xvinfo;
-	GLXContext _context;
-	Glib::RefPtr<Gdk::Window> _window;
-	SSWindow& _sswindow;
-	ButtonsState buttonsState;
+	Display* xdisplay_;
+	XVisualInfo* xvinfo_;
+	GLXContext context_;
+	Glib::RefPtr<Gdk::Window> window_;
+	SSWindow& sswindow_;
+	ButtonsState buttonsState_;
 public:
-	Glx(SSWindow &w);
 	virtual ~Glx();
 
 protected:
+	Glx(SSWindow &w);
 	virtual void on_realize();
 	virtual bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr);
 	virtual bool on_event(GdkEvent *event);
@@ -65,6 +59,38 @@ private:
 	Mouse translate(double x, double y);
 	static void setButton(ButtonsState* buttons, unsigned int button, bool state);
 	static ModState getMods(unsigned int mods);
+
+	Glx(const Glx&);
+	Glx& operator=(const Glx&);
+};
+
+class GlxGraphicsWindow : public Gtk::Window
+{
+	Gtk::Box box_;
+	SSWindow *sswindow_;
+	Glx* glx_;
+public:
+	static GlxGraphicsWindow& getGlxGraphicsWindow();
+	virtual ~GlxGraphicsWindow();
+	const Glx& getWidget() const;
+private:
+	GlxGraphicsWindow();
+	GlxGraphicsWindow(const GlxGraphicsWindow&);
+	GlxGraphicsWindow& operator=(const GlxGraphicsWindow&);
+};
+
+class GlxTextWindow : public Gtk::Window
+{
+	SSWindow *sswindow_;
+	Glx *glx_;
+public:
+	static GlxTextWindow& getGlxTextWindow();
+	virtual ~GlxTextWindow();
+	const Glx& getWidget() const;
+private:
+	GlxTextWindow();
+	GlxTextWindow(const GlxTextWindow&);
+	GlxTextWindow& operator=(const GlxTextWindow&);
 };
 
 #endif /* GTK_UI_H */

@@ -5,18 +5,243 @@
 
 std::string RecentFile[MAX_RECENT];
 
-Gtk::Widget *textWidget;
-Gtk::Widget *graphicsWidget;
+class Label {
+	std::string _label;
+	std::string _accelerator;
+public:
+	Label(const std::string& label)
+	{
+		size_t sep = label.find_first_of('\t');	
+		_label = label.substr(0, sep);
+		replace(&_label, "&", "_");
+		if (sep != std::string::npos) {
+			_accelerator = label.substr(sep + 1, std::string::npos);
+			replace(&_accelerator, "Ctrl+", "<control>");
+			replace(&_accelerator, "Shift+", "<shift>");
+		}
 
-Gtk::Window *graphicsWin;
-Gtk::Window *textWin;
+	}
 
-Glx::Glx(SSWindow& w) : _sswindow(w)
+	const std::string& label()
+	{
+		return _label;
+	}
+
+	const std::string& accelerator()
+	{
+		return _accelerator;
+	}
+
+private:
+	void replace(std::string *str, const std::string& from, const std::string& to)
+	{
+		assert(str);
+		size_t pos = str->find(from);
+		if (pos != std::string::npos) {
+			str->replace(pos, from.size(), to);
+		}
+	}
+};
+
+class SSGraphics : public SSWindow
+{
+	GraphicsWindow &_window;
+public:
+	SSGraphics(GraphicsWindow& window) : _window(window) {}
+	virtual void paint()
+	{
+		_window.Paint();
+	}
+
+	virtual void buttonPress(const Mouse& mouse, Button button)
+	{
+		switch (button) {
+			case BUTTON_LEFT:
+				_window.MouseLeftDown(mouse.x, mouse.y);
+				break;
+			case BUTTON_MIDDLE:
+			case BUTTON_RIGHT:
+				_window.MouseMiddleOrRightDown(mouse.x, mouse.y);
+				break;
+			default: ;
+		}
+	}
+
+	virtual void buttonRelease(const Mouse& mouse, Button button)
+	{
+		switch (button) {
+			case BUTTON_LEFT:
+				_window.MouseLeftUp(mouse.x, mouse.y);
+				break;
+			case BUTTON_RIGHT:
+				_window.MouseRightUp(mouse.x, mouse.y);
+				break;
+			default: ;
+		}
+	}
+
+	virtual void button2Press(const Mouse& mouse, Button button)
+	{
+		if (button == BUTTON_LEFT)
+			_window.MouseLeftDoubleClick(mouse.x, mouse.y);
+	}
+
+	virtual void mouseMoved(const Mouse& mouse, const ButtonsState& buttons, const ModState& mods)
+	{
+		_window.MouseMoved(mouse.x, mouse.y, buttons.left,
+				buttons.middle, buttons.right, mods.shift, mods.control);	
+	}
+	
+	virtual void mouseLeave()
+	{
+		_window.MouseLeave();
+	}
+
+	virtual ~SSGraphics() {}
+private:
+	SSGraphics(const SSGraphics&);
+	SSGraphics& operator=(const SSGraphics&);
+};
+
+class SSText : public SSWindow
+{
+	TextWindow &_window;
+public:
+	SSText(TextWindow& window) : _window(window) {}
+	virtual void paint()
+	{
+		_window.Paint();
+	}
+
+	virtual void buttonPress(const Mouse& mouse, Button button)
+	{
+		if (button == BUTTON_LEFT)
+			_window.MouseEvent(true, true, mouse.x, mouse.y);
+	}
+	
+	virtual void buttonRelease(const Mouse& mouse, Button button) {}
+	virtual void button2Press(const Mouse& mouse, Button button) {}
+	virtual void mouseMoved(const Mouse& mouse, const ButtonsState& buttons, const ModState& mods)
+	{
+		_window.MouseEvent(false, buttons.left, mouse.x, mouse.y);
+	}
+
+	virtual void mouseLeave()
+	{
+		_window.MouseLeave();
+	}
+
+	virtual ~SSText() {}
+private:
+	SSText(const SSText&);
+	SSText& operator=(const SSText&);
+};
+
+static GlxGraphicsWindow& GlxGraphicsWindow::getGlxGraphicsWindow()
+{
+	static GlxGraphicsWindow instance;
+	return instance;
+}
+
+GlxGraphicsWindow::GlxGraphicsWindow() : box_(Gtk::ORIENTATION_VERTICAL), sswindow_(), glx_()
+{
+	sswindow_ = new ssGraphics(SS.GW);
+	glx_ = new Glx(*sswindow_);
+
+	add(box_);
+	box_.pack_end(glx_);
+
+	std::string path = "/ui/";
+	Glib::RefPtr<Gtk::ActionGroup> actionGroup = Gtk::ActionGroup::create();
+	Glib::RefPtr<Gtk::UIManager> uiManager = Gtk::UIManager::create();
+
+	uiManager->add_ui(uiManager->new_merge_id(), path, "MenuBar", "MenuBar",
+			Gtk::UI_MANAGER_MENUBAR);
+	path += "MenuBar/";
+	std::string subpath;
+	
+	for (int i = 0; SS.GW.menu[i].level >= 0; i++) {
+		if (SS.GW.menu[i].label) {
+			Label label(SS.GW.menu[i].label);
+			actionGroup->add(Gtk::Action::create(SS.GW.menu[i].label, label.label()),
+					Gtk::AccelKey(label.accelerator()));
+			if (SS.GW.menu[i].level == 0) {
+				subpath = path + SS.GW.menu[i].label;
+				subpath += "/"; 
+				uiManager->add_ui(uiManager->new_merge_id(), path,
+					SS.GW.menu[i].label, SS.GW.menu[i].label,
+					Gtk::UI_MANAGER_MENU, false);
+			} else {
+				if (SS.GW.menu[i].id)
+					uiManager->add_ui(SS.GW.menu[i].id, subpath, SS.GW.menu[i].label,
+						SS.GW.menu[i].label, Gtk::UI_MANAGER_MENUITEM, false);
+				else
+					uiManager->add_ui(uiManager->new_merge_id(), subpath,
+						SS.GW.menu[i].label, SS.GW.menu[i].label,
+						Gtk::UI_MANAGER_MENUITEM, false);
+			}
+
+		} else
+			uiManager->add_ui_separator(uiManager->new_merge_id(), subpath);
+	}
+
+	uiManager->insert_action_group(actionGroup);
+	
+	Gtk::Widget *menuBar = uiManager->get_widget("/MenuBar");	
+	if (menuBar)
+		box_.pack_start(*menuBar, Gtk::PACK_SHRINK);
+
+	add_accel_group(uiManager->get_accel_group());
+
+	show_all();
+}
+
+GlxGraphicsWindow::~GlxGraphicsWindow()
+{
+	delete glx_;
+	delete sswindow_;	
+}
+
+const Glx& GlxGraphicsWindow::getWidget() const
+{
+	return *glx_;
+}
+
+GlxTextWindow& GlxTextWindow::getGlxTextWindow()
+{
+	static GlxTextWindow instance;
+	return instance;
+}
+
+GlxTextWindow::GlxTextWindow() : sswindow_(), glx_()
+{
+	sswindow_ = new ssText(SS.TW);
+	glx_ = new Glx(*sswindow_);
+
+	set_type_hint(Gdk::WINDOW_TYPE_HINT_UTILITY);
+	add(glx_);
+
+	show_all();
+}
+
+GlxTextWindow::~GlxTextWindow()
+{
+	delete glx_;
+	delete sswindow_;
+}
+
+const Glx& GlxTextWindow() const
+{
+	return *glx_;
+}
+
+Glx::Glx(SSWindow& w) : xdisplay_(), xvinfo_(),
+	context_(), window_(), sswindow_(w), buttonsState_()
 {
 	set_has_window(false);
 
-	_xdisplay = gdk_x11_get_default_xdisplay();
-	if (!glXQueryExtension(_xdisplay, NULL, NULL))
+	xdisplay_ = gdk_x11_get_default_xdisplay();
+	if (!glXQueryExtension(xdisplay_, NULL, NULL))
 		throw std::runtime_error("OpenGL not supported");
 
 	int attrlist[] = {
@@ -28,23 +253,23 @@ Glx::Glx(SSWindow& w) : _sswindow(w)
 		None
 	};
 
-	_xvinfo = glXChooseVisual(_xdisplay, gdk_x11_get_default_screen(), attrlist);
-	if (!_xvinfo)
+	xvinfo_ = glXChooseVisual(xdisplay_, gdk_x11_get_default_screen(), attrlist);
+	if (!xvinfo_)
 		throw std::runtime_error("Error configuring OpenGL");
 
-	_context = glXCreateContext(_xdisplay, _xvinfo, NULL, True);
+	context_ = glXCreateContext(xdisplay_, xvinfo_, NULL, True);
 }
  
 Glx::~Glx()
 {
-	glXDestroyContext(_xdisplay, _context);
+	glXDestroyContext(xdisplay_, context_);
 }
  
 void Glx::on_realize()
 {
 	Gtk::Widget::on_realize();
 
-	if (!_window) {
+	if (!window_) {
 		GdkWindowAttr attr;
 
 		Gtk::Allocation allocation = get_allocation();
@@ -64,16 +289,16 @@ void Glx::on_realize()
 		attr.window_type = GDK_WINDOW_CHILD;
 		attr.wclass = GDK_INPUT_OUTPUT;
 
-		_window = Gdk::Window::create(get_window(), &attr, GDK_WA_X | GDK_WA_Y);
+		window_ = Gdk::Window::create(get_window(), &attr, GDK_WA_X | GDK_WA_Y);
 
 		set_has_window(true);
-		set_window(_window);
+		set_window(window_);
 
 		unset_background_color();
 		set_double_buffered(false);
 
 		// make the window recieve expose events
-		_window->set_user_data(gobj());
+		window_->set_user_data(gobj());
 
 	}
 }
@@ -81,10 +306,10 @@ void Glx::on_realize()
 bool Glx::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
 	XID xid = gdk_x11_window_get_xid(get_window()->gobj());
-	if (!glXMakeCurrent(_xdisplay, xid, _context))
+	if (!glXMakeCurrent(xdisplay_, xid, context_))
 		return false;
-	_sswindow.paint();
-	glXSwapBuffers(_xdisplay, xid);
+	sswindow_.paint();
+	glXSwapBuffers(xdisplay_, xid);
 
 	return true;
 }
@@ -97,9 +322,9 @@ bool Glx::on_event(GdkEvent *event)
 		{
 			GdkEventButton *ev = reinterpret_cast<GdkEventButton*>(event);
 			Mouse mouse = translate(ev->x, ev->y);
-			setButton(&buttonsState, ev->button, true);
+			setButton(&buttonsState_, ev->button, true);
 
-			_sswindow.buttonPress(mouse, Button(ev->button));
+			sswindow_.buttonPress(mouse, Button(ev->button));
 		}
 		break;
 
@@ -107,9 +332,9 @@ bool Glx::on_event(GdkEvent *event)
 		{
 			GdkEventButton *ev = reinterpret_cast<GdkEventButton*>(event);
 			Mouse mouse = translate(ev->x, ev->y);
-			setButton(&buttonsState, ev->button, false);
+			setButton(&buttonsState_, ev->button, false);
 
-			_sswindow.buttonRelease(mouse, Button(ev->button));
+			sswindow_.buttonRelease(mouse, Button(ev->button));
 		}
 		break;
 
@@ -117,9 +342,9 @@ bool Glx::on_event(GdkEvent *event)
 		{
 			GdkEventButton *ev = reinterpret_cast<GdkEventButton*>(event);
 			Mouse mouse = translate(ev->x, ev->y);
-			setButton(&buttonsState, ev->button, true);
+			setButton(&buttonsState_, ev->button, true);
 			
-			_sswindow.button2Press(mouse, Button(ev->button));
+			sswindow_.button2Press(mouse, Button(ev->button));
 		}
 		break;
 
@@ -129,13 +354,13 @@ bool Glx::on_event(GdkEvent *event)
 			Mouse mouse = translate(ev->x, ev->y);
 			ModState mods = getMods(ev->state);
 
-			_sswindow.mouseMoved(mouse, buttonsState, mods);
+			sswindow_.mouseMoved(mouse, buttonsState_, mods);
 		}
 		break;
 
 		case GDK_LEAVE_NOTIFY:
 		{
-			_sswindow.mouseLeave();
+			sswindow_.mouseLeave();
 		}
 		break;
 
@@ -184,6 +409,20 @@ ModState Glx::getMods(unsigned int mods)
 	return rv;
 }
 
+void GetTextWindowSize(int *w, int *h)
+{
+	const Glx& widget = GlxTextWindow::getGlxTextWindow().getWidget();
+	*w = widget.get_allocated_width();
+	*h = widget.get_allocated_height();
+}
+
+void GetGraphicsWindowSize(int *w, int *h)
+{
+	const Glx& widget = GlxGraphicsWindow::getGlxGraphicsWindow().getWidget()
+	*w = widget.get_allocated_width();
+	*h = widget.get_allocated_height();
+}
+
 void CheckMenuById(int id, bool checked)
 {
 }
@@ -198,10 +437,12 @@ void DoMessageBox(char *str, int rows, int cols, bool error)
 
 void InvalidateText(void)
 {
+	GlxTextWindow::getGlxTextWindow().getWidget().queue_draw();
 }
 
 void InvalidateGraphics(void)
 {
+	GlxGraphicsWindow::getGlxGraphicsWindow.getWidget().queue_draw();
 }
 
 void AddContextMenuItem(const char *label, int id)
@@ -218,6 +459,7 @@ void CreateContextSubmenu(void)
 
 void PaintGraphics(void)
 {
+	GlxGraphicsWindow::getGlxGraphicsWindow.getWidget().queue_draw();
 }
 
 void HideTextEditControl(void)
@@ -252,6 +494,8 @@ void GetTextWindowSize(int *w, int *h)
 #endif
 void ShowTextWindow(bool visible)
 {
+	GlxTextWindow& window = GlxTextWindow::getGlxTextWindow();
+	visible ? window.show() : window.hide();
 }
 #if 0
 void GetGraphicsWindowSize(int *w, int *h)
@@ -284,6 +528,7 @@ void OpenWebsite(const char *url)
 
 void SetWindowTitle(const char *str)
 {
+	GlxGraphicsWindow::getGlxGraphicsWindow.set_title(str);
 }
 
 void RefreshRecentMenus(void)
