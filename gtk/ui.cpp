@@ -116,7 +116,7 @@ public:
 	virtual void buttonPress(const Mouse& mouse, Button button)
 	{
 		if (button == BUTTON_LEFT)
-			_window.MouseEvent(true, true, mouse.x, mouse.y);
+			_window.MouseEvent(true, false, mouse.x, mouse.y);
 	}
 	
 	virtual void buttonRelease(const Mouse& mouse, Button button) {}
@@ -137,7 +137,7 @@ private:
 	SSText& operator=(const SSText&);
 };
 
-static GlxGraphicsWindow& GlxGraphicsWindow::getGlxGraphicsWindow()
+GlxGraphicsWindow& GlxGraphicsWindow::getGlxGraphicsWindow()
 {
 	static GlxGraphicsWindow instance;
 	return instance;
@@ -145,11 +145,11 @@ static GlxGraphicsWindow& GlxGraphicsWindow::getGlxGraphicsWindow()
 
 GlxGraphicsWindow::GlxGraphicsWindow() : box_(Gtk::ORIENTATION_VERTICAL), sswindow_(), glx_()
 {
-	sswindow_ = new ssGraphics(SS.GW);
-	glx_ = new Glx(*sswindow_);
+	sswindow_ = new SSGraphics(SS.GW);
+	glx_ = new Glx(*sswindow_, true);
 
 	add(box_);
-	box_.pack_end(glx_);
+	box_.pack_end(*glx_);
 
 	std::string path = "/ui/";
 	Glib::RefPtr<Gtk::ActionGroup> actionGroup = Gtk::ActionGroup::create();
@@ -202,7 +202,7 @@ GlxGraphicsWindow::~GlxGraphicsWindow()
 	delete sswindow_;	
 }
 
-const Glx& GlxGraphicsWindow::getWidget() const
+Glx& GlxGraphicsWindow::widget()
 {
 	return *glx_;
 }
@@ -215,11 +215,11 @@ GlxTextWindow& GlxTextWindow::getGlxTextWindow()
 
 GlxTextWindow::GlxTextWindow() : sswindow_(), glx_()
 {
-	sswindow_ = new ssText(SS.TW);
-	glx_ = new Glx(*sswindow_);
+	sswindow_ = new SSText(SS.TW);
+	glx_ = new Glx(*sswindow_, false);
 
-	set_type_hint(Gdk::WINDOW_TYPE_HINT_UTILITY);
-	add(glx_);
+//	set_type_hint(Gdk::WINDOW_TYPE_HINT_UTILITY);
+	add(*glx_);
 
 	show_all();
 }
@@ -230,13 +230,14 @@ GlxTextWindow::~GlxTextWindow()
 	delete sswindow_;
 }
 
-const Glx& GlxTextWindow() const
+Glx& GlxTextWindow::widget()
 {
 	return *glx_;
 }
 
-Glx::Glx(SSWindow& w) : xdisplay_(), xvinfo_(),
-	context_(), window_(), sswindow_(w), buttonsState_()
+Glx::Glx(SSWindow& w, bool translate) : xdisplay_(), xvinfo_(),
+	context_(), window_(), sswindow_(w), buttonsState_(),
+	translation_(translate)
 {
 	set_has_window(false);
 
@@ -374,9 +375,13 @@ bool Glx::on_event(GdkEvent *event)
 Mouse Glx::translate(double x, double y)
 {
 	Mouse rv;
-
-	rv.x = x - get_allocated_width() / 2;
-	rv.y = get_allocated_height() / 2 - y;
+	if (translation_) {
+		rv.x = x - get_allocated_width() / 2;
+		rv.y = get_allocated_height() / 2 - y;
+	} else {
+		rv.x = x;
+		rv.y = y;
+	}
 
 	return rv;
 }
@@ -411,14 +416,14 @@ ModState Glx::getMods(unsigned int mods)
 
 void GetTextWindowSize(int *w, int *h)
 {
-	const Glx& widget = GlxTextWindow::getGlxTextWindow().getWidget();
+	const Glx& widget = GlxTextWindow::getGlxTextWindow().widget();
 	*w = widget.get_allocated_width();
 	*h = widget.get_allocated_height();
 }
 
 void GetGraphicsWindowSize(int *w, int *h)
 {
-	const Glx& widget = GlxGraphicsWindow::getGlxGraphicsWindow().getWidget()
+	const Glx& widget = GlxGraphicsWindow::getGlxGraphicsWindow().widget();
 	*w = widget.get_allocated_width();
 	*h = widget.get_allocated_height();
 }
@@ -437,12 +442,12 @@ void DoMessageBox(char *str, int rows, int cols, bool error)
 
 void InvalidateText(void)
 {
-	GlxTextWindow::getGlxTextWindow().getWidget().queue_draw();
+	GlxTextWindow::getGlxTextWindow().widget().queue_draw();
 }
 
 void InvalidateGraphics(void)
 {
-	GlxGraphicsWindow::getGlxGraphicsWindow.getWidget().queue_draw();
+	GlxGraphicsWindow::getGlxGraphicsWindow().widget().queue_draw();
 }
 
 void AddContextMenuItem(const char *label, int id)
@@ -459,7 +464,7 @@ void CreateContextSubmenu(void)
 
 void PaintGraphics(void)
 {
-	GlxGraphicsWindow::getGlxGraphicsWindow.getWidget().queue_draw();
+	GlxGraphicsWindow::getGlxGraphicsWindow().widget().queue_draw();
 }
 
 void HideTextEditControl(void)
@@ -486,22 +491,11 @@ bool GraphicsEditControlIsVisible(void)
 {
 	return false;
 }
-#if 0
-void GetTextWindowSize(int *w, int *h)
-{
-
-}
-#endif
 void ShowTextWindow(bool visible)
 {
 	GlxTextWindow& window = GlxTextWindow::getGlxTextWindow();
 	visible ? window.show() : window.hide();
 }
-#if 0
-void GetGraphicsWindowSize(int *w, int *h)
-{
-}
-#endif 
 bool GetSaveFile(std::string *file, const char *defExtension, const char *selPattern)
 {
 }
@@ -528,7 +522,7 @@ void OpenWebsite(const char *url)
 
 void SetWindowTitle(const char *str)
 {
-	GlxGraphicsWindow::getGlxGraphicsWindow.set_title(str);
+	GlxGraphicsWindow::getGlxGraphicsWindow().set_title(str);
 }
 
 void RefreshRecentMenus(void)

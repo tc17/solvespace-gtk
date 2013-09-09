@@ -13,7 +13,7 @@
 
 // Debugging functions
 #define oops() do { dbp("oops at line %d, file %s", __LINE__, __FILE__); \
-                    exit(-1); } while(0)
+                    abort(); } while(0)
 
 #if defined(_WIN32) || defined(_WIN64)
 # ifndef min
@@ -200,11 +200,11 @@ std::string CnfThawString(const char *name);
 DWORD CnfThawDWORD(DWORD v, const char *name);
 float CnfThawFloat(float v, const char *name);
 
-void *AllocTemporary(int n);
+void *AllocTemporary(size_t n);
 void FreeTemporary(void *p);
 void FreeAllTemporary(void);
-void *MemRealloc(void *p, int n);
-void *MemAlloc(int n);
+void *MemRealloc(void *p, size_t n);
+void *MemAlloc(size_t n);
 void MemFree(void *p);
 void InitHeaps(void);
 void vl(void); // debug function to validate heaps

@@ -47,11 +47,12 @@ class Glx : public Gtk::Widget
 	Glib::RefPtr<Gdk::Window> window_;
 	SSWindow& sswindow_;
 	ButtonsState buttonsState_;
+	bool translation_;
 public:
+	Glx(SSWindow &w, bool translation);
 	virtual ~Glx();
 
 protected:
-	Glx(SSWindow &w);
 	virtual void on_realize();
 	virtual bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr);
 	virtual bool on_event(GdkEvent *event);
@@ -72,7 +73,7 @@ class GlxGraphicsWindow : public Gtk::Window
 public:
 	static GlxGraphicsWindow& getGlxGraphicsWindow();
 	virtual ~GlxGraphicsWindow();
-	const Glx& getWidget() const;
+	Glx& widget();
 private:
 	GlxGraphicsWindow();
 	GlxGraphicsWindow(const GlxGraphicsWindow&);
@@ -86,7 +87,7 @@ class GlxTextWindow : public Gtk::Window
 public:
 	static GlxTextWindow& getGlxTextWindow();
 	virtual ~GlxTextWindow();
-	const Glx& getWidget() const;
+	Glx& widget();
 private:
 	GlxTextWindow();
 	GlxTextWindow(const GlxTextWindow&);

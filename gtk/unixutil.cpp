@@ -1,11 +1,13 @@
 #include "solvespace.h"
 #include <set>
+#include <map>
 
 static std::set<void *> pool;
+static std::map<void *, size_t> mem;
 
-void *AllocTemporary(int n)
+void *AllocTemporary(size_t n)
 {
-	void *p = malloc(n);
+	void *p = calloc(1, n);
 	if (!p)
 		oops();
 
@@ -28,24 +30,37 @@ void FreeAllTemporary(void)
 	pool.clear();
 }
 
-void *MemRealloc(void *p, int n)
+void *MemRealloc(void *p, size_t n)
 {
-	p = realloc(p, n);
-	if (!p)
+	void *newp = realloc(p, n);
+	if (!newp)
 		oops();
-	return p;
+	
+	size_t oldsize = mem[p];
+	if (n > oldsize)
+		memset(newp + oldsize, 0, n - oldsize);
+
+	if (newp != p)
+		mem.erase(p);
+	mem[newp] = n;
+
+	return newp;
 }
 
-void *MemAlloc(int n)
+void *MemAlloc(size_t n)
 {
-	void *p = malloc(n);
+	void *p = calloc(1, n);
 	if (!p)
 		oops();
+
+	mem[p] = n;
 	return p;
 }
 
 void MemFree(void *p)
 {
+	if (p)
+		mem.erase(p);
 	free(p);
 }
 
@@ -61,5 +76,6 @@ std::string GetAbsoluteFilename(const std::string& path)
 {
 }
 
-SDWORD GetMilliseconds(void){
+SDWORD GetMilliseconds(void)
+{
 }
