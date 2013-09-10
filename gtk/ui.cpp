@@ -161,23 +161,30 @@ GlxGraphicsWindow::GlxGraphicsWindow() : box_(Gtk::ORIENTATION_VERTICAL), sswind
 	std::string subpath;
 	
 	for (int i = 0; SS.GW.menu[i].level >= 0; i++) {
-		if (SS.GW.menu[i].label) {
-			Label label(SS.GW.menu[i].label);
-			actionGroup->add(Gtk::Action::create(SS.GW.menu[i].label, label.label()),
+		const GraphicsWindow::MenuEntry *entry = &SS.GW.menu[i];
+		if (entry->label) {
+			Label label(entry->label);
+			if (entry->id)
+				actionGroup->add(Gtk::Action::create(entry->label, label.label()),
+						Gtk::AccelKey(label.accelerator()),
+						sigc::bind<int>(sigc::ptr_fun(entry->fn), entry->id));
+
+			else 
+				actionGroup->add(Gtk::Action::create(entry->label, label.label()),
 					Gtk::AccelKey(label.accelerator()));
-			if (SS.GW.menu[i].level == 0) {
+			if (entry->level == 0) {
 				subpath = path + SS.GW.menu[i].label;
 				subpath += "/"; 
 				uiManager->add_ui(uiManager->new_merge_id(), path,
-					SS.GW.menu[i].label, SS.GW.menu[i].label,
+					entry->label, entry->label,
 					Gtk::UI_MANAGER_MENU, false);
 			} else {
-				if (SS.GW.menu[i].id)
-					uiManager->add_ui(SS.GW.menu[i].id, subpath, SS.GW.menu[i].label,
-						SS.GW.menu[i].label, Gtk::UI_MANAGER_MENUITEM, false);
-				else
+				if (SS.GW.menu[i].id) {
+					uiManager->add_ui(entry->id, subpath, entry->label,
+						entry->label, Gtk::UI_MANAGER_MENUITEM, false);
+				} else
 					uiManager->add_ui(uiManager->new_merge_id(), subpath,
-						SS.GW.menu[i].label, SS.GW.menu[i].label,
+						entry->label, entry->label,
 						Gtk::UI_MANAGER_MENUITEM, false);
 			}
 
