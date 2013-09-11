@@ -683,7 +683,7 @@ void SPolygon::FixContourDirections(void) {
         }
    
         bool clockwise = sc->IsClockwiseProjdToNormal(normal);
-        if(clockwise && outer || (!clockwise && !outer)) {
+        if((clockwise && outer) || (!clockwise && !outer)) {
             sc->Reverse();
             sc->tag = 1;
         }
@@ -814,7 +814,7 @@ void SContour::OffsetInto(SContour *dest, double r) {
         }
     
         if(fabs(thetan - thetap) < (1*PI)/180) {
-            Vector p = { b.x - r*sin(thetap), b.y + r*cos(thetap) };
+            Vector p = { b.x - r*sin(thetap), b.y + r*cos(thetap), 0 };
             dest->AddPoint(p);
         } else if(thetan < thetap) {
             // This is an inside corner. We have two edges, Ep and En. Move

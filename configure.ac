@@ -3,10 +3,13 @@
 
 AC_PREREQ([2.68])
 AC_INIT([SolverSpace], [VERSION], [BUG-REPORT-ADDRESS])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([silent-rules])
 AC_CONFIG_SRCDIR([solvespace.cpp])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
+
+#
+AM_SILENT_RULES([yes])
 
 # Checks for programs.
 AC_PROG_CXX

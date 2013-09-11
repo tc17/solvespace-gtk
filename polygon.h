@@ -17,7 +17,7 @@ class SBsp3;
 class SEdge {
 public:
     int    tag;
-    int    auxA, auxB;
+    unsigned    auxA, auxB;
     Vector a, b;
 
     static SEdge From(Vector a, Vector b);

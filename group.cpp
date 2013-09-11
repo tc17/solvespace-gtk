@@ -201,7 +201,7 @@ void Group::MenuGroup(int id) {
             // Assign the default name of the group based on the name of
             // the imported file.
 	    std::string impFile = g.impFile.std_str();
-	    int dot = impFile.rfind('.');
+	    size_t dot = impFile.rfind('.');
 	    std::string groupName = 
 		    (dot != std::string::npos) 
 		    ? std::string(impFile)

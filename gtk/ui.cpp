@@ -244,7 +244,7 @@ Glx& GlxTextWindow::widget()
 
 Glx::Glx(SSWindow& w, bool translate) : xdisplay_(), xvinfo_(),
 	context_(), window_(), sswindow_(w), buttonsState_(),
-	translation_(translate)
+	translation_(translate), cursor_(Gdk::Cursor::create(Gdk::HAND1))
 {
 	set_has_window(false);
 
@@ -421,6 +421,16 @@ ModState Glx::getMods(unsigned int mods)
 	return rv;
 }
 
+void Glx::setCursorToHand(bool yes)
+{
+	Glib::RefPtr<Gdk::Window> window = get_window();
+
+	if (yes)
+		window->set_cursor(cursor_);
+	else
+		window->set_cursor();
+}
+
 void GetTextWindowSize(int *w, int *h)
 {
 	const Glx& widget = GlxTextWindow::getGlxTextWindow().widget();
@@ -563,6 +573,8 @@ bool GetOpenFile(std::string *file, const char *defExtension, const char *selPat
 
 void SetMousePointerToHand(bool yes)
 {
+	GlxGraphicsWindow::getGlxGraphicsWindow().widget().setCursorToHand(yes);
+	GlxTextWindow::getGlxTextWindow().widget().setCursorToHand(yes);
 }
 
 void MoveTextScrollbarTo(int pos, int maxPos, int page)
@@ -586,8 +598,16 @@ void RefreshRecentMenus(void)
 {
 }
 
-saveRv SaveFileYesNoCancel(void)
+int SaveFileYesNoCancel(void)
 {
+	Gtk::MessageDialog dialog(GlxGraphicsWindow::getGlxGraphicsWindow(),
+			"The program has changed since it was last saved.\r\n\r\n"
+			"Do you want to save the changes?", false, Gtk::MESSAGE_INFO,
+			Gtk::BUTTONS_NONE);
+	dialog.add_button(Gtk::Stock::YES, SAVE_YES);
+	dialog.add_button(Gtk::Stock::NO, SAVE_NO);
+	dialog.add_button(Gtk::Stock::CANCEL, SAVE_CANCEL);
+	return dialog.run();
 }
 
 void LoadAllFontFiles(void)

@@ -38,7 +38,7 @@ void *MemRealloc(void *p, size_t n)
 	
 	size_t oldsize = mem[p];
 	if (n > oldsize)
-		memset(newp + oldsize, 0, n - oldsize);
+		memset((char *)newp + oldsize, 0, n - oldsize);
 
 	if (newp != p)
 		mem.erase(p);

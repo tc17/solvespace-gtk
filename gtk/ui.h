@@ -48,9 +48,11 @@ class Glx : public Gtk::Widget
 	SSWindow& sswindow_;
 	ButtonsState buttonsState_;
 	bool translation_;
+	Glib::RefPtr<Gdk::Cursor> cursor_;
 public:
 	Glx(SSWindow &w, bool translation);
 	virtual ~Glx();
+	void setCursorToHand(bool yes);
 
 protected:
 	virtual void on_realize();

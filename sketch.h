@@ -665,23 +665,23 @@ public:
     // If an entity has no style, then it will be colored according to
     // whether the group that it's in is active or not, whether it's
     // construction or not, and so on.
-    static const int NO_STYLE       = 0;
+    static const unsigned NO_STYLE       = 0;
 
-    static const int ACTIVE_GRP     = 1;
-    static const int CONSTRUCTION   = 2;
-    static const int INACTIVE_GRP   = 3;
-    static const int DATUM          = 4;
-    static const int SOLID_EDGE     = 5;
-    static const int CONSTRAINT     = 6;
-    static const int SELECTED       = 7;
-    static const int HOVERED        = 8;
-    static const int CONTOUR_FILL   = 9;
-    static const int NORMALS        = 10;
-    static const int ANALYZE        = 11;
-    static const int DRAW_ERROR     = 12;
-    static const int DIM_SOLID      = 13;
+    static const unsigned ACTIVE_GRP     = 1;
+    static const unsigned CONSTRUCTION   = 2;
+    static const unsigned INACTIVE_GRP   = 3;
+    static const unsigned DATUM          = 4;
+    static const unsigned SOLID_EDGE     = 5;
+    static const unsigned CONSTRAINT     = 6;
+    static const unsigned SELECTED       = 7;
+    static const unsigned HOVERED        = 8;
+    static const unsigned CONTOUR_FILL   = 9;
+    static const unsigned NORMALS        = 10;
+    static const unsigned ANALYZE        = 11;
+    static const unsigned DRAW_ERROR     = 12;
+    static const unsigned DIM_SOLID      = 13;
 
-    static const int FIRST_CUSTOM   = 0x100;
+    static const unsigned FIRST_CUSTOM   = 0x100;
 
     NameStr     name;
 

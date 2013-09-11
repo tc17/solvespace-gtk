@@ -115,7 +115,7 @@ enum saveRv {
 	SAVE_CANCEL
 };
 
-saveRv SaveFileYesNoCancel(void);
+int SaveFileYesNoCancel(void);
 // SolveSpace native file format
 #define SLVS_PATTERN "SolveSpace Models (*.slvs)\0*.slvs\0All Files (*)\0*\0\0"
 #define SLVS_EXT "slvs"

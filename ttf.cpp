@@ -255,14 +255,14 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
 
         // Now load the Table Directory; our goal in doing this will be to
         // find the addresses of the tables that we will need.
-        DWORD   glyfAddr = -1, glyfLen;
-        DWORD   cmapAddr = -1, cmapLen;
-        DWORD   headAddr = -1, headLen;
-        DWORD   locaAddr = -1, locaLen;
-        DWORD   maxpAddr = -1, maxpLen;
-        DWORD   nameAddr = -1, nameLen;
-        DWORD   hmtxAddr = -1, hmtxLen;
-        DWORD   hheaAddr = -1, hheaLen;
+        DWORD   glyfAddr = ~0U, glyfLen;
+        DWORD   cmapAddr = ~0U, cmapLen;
+        DWORD   headAddr = ~0U, headLen;
+        DWORD   locaAddr = ~0U, locaLen;
+        DWORD   maxpAddr = ~0U, maxpLen;
+        DWORD   nameAddr = ~0U, nameLen;
+        DWORD   hmtxAddr = ~0U, hmtxLen;
+        DWORD   hheaAddr = ~0U, hheaLen;
 
         for(i = 0; i < numTables; i++) {
             char tag[5] = "xxxx";
@@ -301,9 +301,9 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
             }
         }
 
-        if(glyfAddr == -1 || cmapAddr == -1 || headAddr == -1 ||
-           locaAddr == -1 || maxpAddr == -1 || hmtxAddr == -1 ||
-           nameAddr == -1 || hheaAddr == -1)
+        if(glyfAddr == ~0U || cmapAddr == ~0U || headAddr == ~0U ||
+           locaAddr == ~0U || maxpAddr == ~0U || hmtxAddr == ~0U ||
+           nameAddr == ~0U || hheaAddr == ~0U)
         {
             throw "missing table addr";
         }
@@ -339,7 +339,7 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
         if(nameOnly) {
             // Find the display name, and store it in the provided buffer.
             fseek(fh, nameAddr+nameStringOffset+displayNameOffset, SEEK_SET);
-            int c = 0;
+            size_t c = 0;
             for(i = 0; i < displayNameLength; i++) {
                 BYTE b = GetBYTE();
                 if(b && c < (sizeof(name.str) - 2)) {
@@ -448,7 +448,7 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
         // glyphs.
         fseek(fh, cmapAddr, SEEK_SET);
 
-        DWORD usedTableAddr = -1;
+        DWORD usedTableAddr = ~0U;
 
         WORD  cmapVersion        = GetWORD();
         WORD  cmapTableCount     = GetWORD();
@@ -463,7 +463,7 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
             }
         }
 
-        if(usedTableAddr == -1) {
+        if(usedTableAddr == ~0U) {
             throw "no used table addr";
         }
 
@@ -510,14 +510,14 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
         // So first, null out the glyph table in our in-memory representation
         // of the font; any character for which cmap does not provide a glyph
         // corresponds to -1
-        for(i = 0; i < arraylen(useGlyph); i++) {
-            useGlyph[i] = 0;
+        for(size_t j = 0; j < arraylen(useGlyph); j++) {
+            useGlyph[j] = 0;
         }
 
         for(i = 0; i < segCount; i++) {
             WORD v = idDelta[i];
             if(idRangeOffset[i] == 0) {
-                int j;
+                WORD j;
                 for(j = startChar[i]; j <= endChar[i]; j++) {
                     if(j > 0 && j < arraylen(useGlyph)) {
                         // Don't create a reference to a glyph that we won't
@@ -529,7 +529,7 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
                     }
                 }
             } else {
-                int j;
+                WORD j;
                 for(j = startChar[i]; j <= endChar[i]; j++) {
                     if(j > 0 && j < arraylen(useGlyph)) {
                         int fp = filePos[i];
