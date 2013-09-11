@@ -100,7 +100,7 @@ void TtfFont::LoadGlyph(int index) {
 
     SWORD contours          = GetWORD();
     SWORD xMin              = GetWORD();
-    SWORD yMin              = GetWORD();
+    /* SWORD yMin              =*/ GetWORD();
     SWORD xMax              = GetWORD();
     SWORD yMax              = GetWORD();
 
@@ -247,22 +247,22 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
 
     try {
         // First, load the Offset Table
-        DWORD   version         = GetDWORD();
+        /* DWORD   version         = */GetDWORD();
         WORD    numTables       = GetWORD();
-        WORD    searchRange     = GetWORD();
-        WORD    entrySelector   = GetWORD();
-        WORD    rangeShift      = GetWORD();
+        /* WORD    searchRange     = */GetWORD();
+        /* WORD    entrySelector   = */GetWORD();
+        /* WORD    rangeShift      = */GetWORD();
 
         // Now load the Table Directory; our goal in doing this will be to
         // find the addresses of the tables that we will need.
-        DWORD   glyfAddr = ~0U, glyfLen;
-        DWORD   cmapAddr = ~0U, cmapLen;
-        DWORD   headAddr = ~0U, headLen;
-        DWORD   locaAddr = ~0U, locaLen;
-        DWORD   maxpAddr = ~0U, maxpLen;
-        DWORD   nameAddr = ~0U, nameLen;
-        DWORD   hmtxAddr = ~0U, hmtxLen;
-        DWORD   hheaAddr = ~0U, hheaLen;
+        DWORD   glyfAddr = ~0U;
+        DWORD   cmapAddr = ~0U;
+        DWORD   headAddr = ~0U;
+        DWORD   locaAddr = ~0U;
+        DWORD   maxpAddr = ~0U;
+        DWORD   nameAddr = ~0U;
+        DWORD   hmtxAddr = ~0U;
+        DWORD   hheaAddr = ~0U;
 
         for(i = 0; i < numTables; i++) {
             char tag[5] = "xxxx";
@@ -270,34 +270,26 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
             tag[1]              = GetBYTE();
             tag[2]              = GetBYTE();
             tag[3]              = GetBYTE();
-            DWORD   checksum    = GetDWORD();
+            /* DWORD   checksum    = */GetDWORD();
             DWORD   offset      = GetDWORD();
-            DWORD   length      = GetDWORD();
+            /* DWORD   length      = */GetDWORD();
 
             if(strcmp(tag, "glyf")==0) {
                 glyfAddr = offset;
-                glyfLen = length;
             } else if(strcmp(tag, "cmap")==0) {
                 cmapAddr = offset;
-                cmapLen = length;
             } else if(strcmp(tag, "head")==0) {
                 headAddr = offset;
-                headLen = length;
             } else if(strcmp(tag, "loca")==0) {
                 locaAddr = offset;
-                locaLen = length;
             } else if(strcmp(tag, "maxp")==0) {
                 maxpAddr = offset;
-                maxpLen = length;
             } else if(strcmp(tag, "name")==0) {
                 nameAddr = offset;
-                nameLen = length;
             } else if(strcmp(tag, "hhea")==0) {
                 hheaAddr = offset;
-                hheaLen = length;
             } else if(strcmp(tag, "hmtx")==0) {
                 hmtxAddr = offset;
-                hmtxLen = length;
             }
         }
 
@@ -312,16 +304,16 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
         // we need when we're giving the user a list to choose from.
         fseek(fh, nameAddr, SEEK_SET);
 
-        WORD  nameFormat            = GetWORD();
+        /* WORD  nameFormat            = */GetWORD();
         WORD  nameCount             = GetWORD();
         WORD  nameStringOffset      = GetWORD();
         // And now we're at the name records. Go through those till we find
         // one that we want.
         int displayNameOffset, displayNameLength;
         for(i = 0; i < nameCount; i++) {
-            WORD    platformID      = GetWORD();
-            WORD    encodingID      = GetWORD();
-            WORD    languageID      = GetWORD();
+            /* WORD    platformID      = */GetWORD();
+            /* WORD    encodingID      = */GetWORD();
+            /* WORD    languageID      = */GetWORD();
             WORD    nameId          = GetWORD();
             WORD    length          = GetWORD();
             WORD    offset          = GetWORD();
@@ -357,25 +349,25 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
         // loca table, 16- or 32-bit entries
         fseek(fh, headAddr, SEEK_SET);
 
-        DWORD headVersion           = GetDWORD();
-        DWORD headFontRevision      = GetDWORD();
-        DWORD headCheckSumAdj       = GetDWORD();
+        /*DWORD headVersion           = */GetDWORD();
+        /*DWORD headFontRevision      = */GetDWORD();
+        /*DWORD headCheckSumAdj       = */GetDWORD();
         DWORD headMagicNumber       = GetDWORD();
-        WORD  headFlags             = GetWORD();
-        WORD  headUnitsPerEm        = GetWORD();
+        /*WORD  headFlags             = */GetWORD();
+        /*WORD  headUnitsPerEm        = */GetWORD();
         (void)GetDWORD(); // created time
         (void)GetDWORD();
         (void)GetDWORD(); // modified time
         (void)GetDWORD();
-        WORD  headXmin              = GetWORD();
-        WORD  headYmin              = GetWORD();
-        WORD  headXmax              = GetWORD();
-        WORD  headYmax              = GetWORD();
-        WORD  headMacStyle          = GetWORD();
-        WORD  headLowestRecPPEM     = GetWORD();
-        WORD  headFontDirectionHint = GetWORD();
+        /*WORD  headXmin              = */GetWORD();
+        /*WORD  headYmin              = */GetWORD();
+        /*WORD  headXmax              = */GetWORD();
+        /*WORD  headYmax              = */GetWORD();
+        /*WORD  headMacStyle          = */GetWORD();
+        /*WORD  headLowestRecPPEM     = */GetWORD();
+        /*WORD  headFontDirectionHint = */GetWORD();
         WORD  headIndexToLocFormat  = GetWORD();
-        WORD  headGlyphDataFormat   = GetWORD();
+        /*WORD  headGlyphDataFormat   = */GetWORD();
         
         if(headMagicNumber != 0x5F0F3CF5) {
             throw "bad magic number";
@@ -384,43 +376,43 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
         // Load the hhea table, which contains the number of entries in the
         // horizontal metrics (hmtx) table.
         fseek(fh, hheaAddr, SEEK_SET);
-        DWORD hheaVersion           = GetDWORD();
-        WORD  hheaAscender          = GetWORD();
-        WORD  hheaDescender         = GetWORD();
-        WORD  hheaLineGap           = GetWORD();
-        WORD  hheaAdvanceWidthMax   = GetWORD();
-        WORD  hheaMinLsb            = GetWORD();
-        WORD  hheaMinRsb            = GetWORD();
-        WORD  hheaXMaxExtent        = GetWORD();
-        WORD  hheaCaretSlopeRise    = GetWORD();
-        WORD  hheaCaretSlopeRun     = GetWORD();
-        WORD  hheaCaretOffset       = GetWORD();
+        /*DWORD hheaVersion           = */GetDWORD();
+        /*WORD  hheaAscender          = */GetWORD();
+        /*WORD  hheaDescender         = */GetWORD();
+        /*WORD  hheaLineGap           = */GetWORD();
+        /*WORD  hheaAdvanceWidthMax   = */GetWORD();
+        /*WORD  hheaMinLsb            = */GetWORD();
+        /*WORD  hheaMinRsb            = */GetWORD();
+        /*WORD  hheaXMaxExtent        = */GetWORD();
+        /*WORD  hheaCaretSlopeRise    = */GetWORD();
+        /*WORD  hheaCaretSlopeRun     = */GetWORD();
+        /*WORD  hheaCaretOffset       = */GetWORD();
         (void)GetWORD();
         (void)GetWORD();
         (void)GetWORD();
         (void)GetWORD();
-        WORD  hheaMetricDataFormat  = GetWORD();
+        /*WORD  hheaMetricDataFormat  = */GetWORD();
         WORD  hheaNumberOfMetrics   = GetWORD();
 
         // Load the maxp table, which determines (among other things) the number
         // of glyphs in the font
         fseek(fh, maxpAddr, SEEK_SET);
 
-        DWORD maxpVersion               = GetDWORD();
+        /*DWORD maxpVersion               = */GetDWORD();
         WORD  maxpNumGlyphs             = GetWORD();
-        WORD  maxpMaxPoints             = GetWORD();
-        WORD  maxpMaxContours           = GetWORD();
-        WORD  maxpMaxComponentPoints    = GetWORD();
-        WORD  maxpMaxComponentContours  = GetWORD();
-        WORD  maxpMaxZones              = GetWORD();
-        WORD  maxpMaxTwilightPoints     = GetWORD();
-        WORD  maxpMaxStorage            = GetWORD();
-        WORD  maxpMaxFunctionDefs       = GetWORD();
-        WORD  maxpMaxInstructionDefs    = GetWORD();
-        WORD  maxpMaxStackElements      = GetWORD();
-        WORD  maxpMaxSizeOfInstructions = GetWORD();
-        WORD  maxpMaxComponentElements  = GetWORD();
-        WORD  maxpMaxComponentDepth     = GetWORD();
+        /*WORD  maxpMaxPoints             = */GetWORD();
+        /*WORD  maxpMaxContours           = */GetWORD();
+        /*WORD  maxpMaxComponentPoints    = */GetWORD();
+        /*WORD  maxpMaxComponentContours  = */GetWORD();
+        /*WORD  maxpMaxZones              = */GetWORD();
+        /*WORD  maxpMaxTwilightPoints     = */GetWORD();
+        /*WORD  maxpMaxStorage            = */GetWORD();
+        /*WORD  maxpMaxFunctionDefs       = */GetWORD();
+        /*WORD  maxpMaxInstructionDefs    = */GetWORD();
+        /*WORD  maxpMaxStackElements      = */GetWORD();
+        /*WORD  maxpMaxSizeOfInstructions = */GetWORD();
+        /*WORD  maxpMaxComponentElements  = */GetWORD();
+        /*WORD  maxpMaxComponentDepth     = */GetWORD();
 
         glyphs = maxpNumGlyphs;
         glyph = (Glyph *)MemAlloc(glyphs*sizeof(glyph[0]));
@@ -450,7 +442,7 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
 
         DWORD usedTableAddr = ~0U;
 
-        WORD  cmapVersion        = GetWORD();
+        /*WORD  cmapVersion        = */GetWORD();
         WORD  cmapTableCount     = GetWORD();
         for(i = 0; i < cmapTableCount; i++) {
             WORD  platformId = GetWORD();
@@ -472,12 +464,12 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
         fseek(fh, usedTableAddr, SEEK_SET);
 
         WORD  mapFormat             = GetWORD();
-        WORD  mapLength             = GetWORD();
-        WORD  mapVersion            = GetWORD();
+        /*WORD  mapLength             = */GetWORD();
+        /*WORD  mapVersion            = */GetWORD();
         WORD  mapSegCountX2         = GetWORD();
-        WORD  mapSearchRange        = GetWORD();
-        WORD  mapEntrySelector      = GetWORD();
-        WORD  mapRangeShift         = GetWORD();
+        /*WORD  mapSearchRange        = */GetWORD();
+        /*WORD  mapEntrySelector      = */GetWORD();
+        /*WORD  mapRangeShift         = */GetWORD();
         
         if(mapFormat != 4) {
             // Required to use format 4 per spec
@@ -495,7 +487,7 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
         for(i = 0; i < segCount; i++) {
             endChar[i] = GetWORD();
         }
-        WORD  mapReservedPad        = GetWORD();
+        /*WORD  mapReservedPad        = */GetWORD();
         for(i = 0; i < segCount; i++) {
             startChar[i] = GetWORD();
         }
