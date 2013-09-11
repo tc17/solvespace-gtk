@@ -189,7 +189,7 @@ void dbp(const char *str, ...);
 
 void SetWindowTitle(const char *str);
 void SetMousePointerToHand(bool yes);
-void DoMessageBox(char *str, int rows, int cols, bool error);
+void DoMessageBox(const char *str, int rows, int cols, bool error);
 void SetTimerFor(int milliseconds);
 void ExitNow(void);
 

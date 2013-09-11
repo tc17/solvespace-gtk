@@ -126,7 +126,7 @@ HWND CreateWindowClient(DWORD exStyle, char *className, char *windowName,
     return h;
 }
 
-void DoMessageBox(char *str, int rows, int cols, BOOL error)
+void DoMessageBox(const char *str, int rows, int cols, bool error)
 {
     EnableWindow(GraphicsWnd, FALSE);
     EnableWindow(TextWnd, FALSE);

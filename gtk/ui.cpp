@@ -443,8 +443,11 @@ void EnableMenuById(int id, bool checked)
 {
 }
 
-void DoMessageBox(char *str, int rows, int cols, bool error)
+void DoMessageBox(const char *str, int rows, int cols, bool error)
 {
+	Gtk::MessageDialog dialog(GlxGraphicsWindow::getGlxGraphicsWindow(),
+			str, false, error ? Gtk::MESSAGE_ERROR : Gtk::MESSAGE_INFO);
+	dialog.run();
 }
 
 void InvalidateText(void)
@@ -498,17 +501,64 @@ bool GraphicsEditControlIsVisible(void)
 {
 	return false;
 }
+
 void ShowTextWindow(bool visible)
 {
 	GlxTextWindow& window = GlxTextWindow::getGlxTextWindow();
 	visible ? window.show() : window.hide();
 }
+
+static const char *get_next_token(const char *str) 
+{
+	const char *rv;
+	for (rv = str; *rv; rv++)
+		;
+	return rv+1;
+}
+
+static void addFilters(Gtk::FileChooser *fileChooser, const char *patterns)
+{
+	assert(fileChooser);
+	assert(patterns);
+
+	const char *token = patterns;
+	while (*token) {
+		Glib::RefPtr<Gtk::FileFilter> filter = Gtk::FileFilter::create();
+		filter->set_name(token);
+		
+		token = get_next_token(token);
+		assert(token);
+
+		filter->add_pattern(token);
+
+		fileChooser->add_filter(filter);
+
+		token = get_next_token(token);
+	}	
+}
+
+static bool fileDialog(std::string *file, const char *pattern, const Gtk::StockID& id)
+{
+	Gtk::FileChooserDialog fileChooser(GlxGraphicsWindow::getGlxGraphicsWindow(), "");
+	fileChooser.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+	fileChooser.add_button(id, Gtk::RESPONSE_OK);
+
+	addFilters(&fileChooser, pattern);
+
+	int rv = fileChooser.run();
+	*file = fileChooser.get_filename();
+
+	return (rv == Gtk::RESPONSE_ACCEPT);
+}
+
 bool GetSaveFile(std::string *file, const char *defExtension, const char *selPattern)
 {
+	return fileDialog(file, selPattern, Gtk::Stock::SAVE);
 }
 
 bool GetOpenFile(std::string *file, const char *defExtension, const char *selPattern)
 {
+	return fileDialog(file, selPattern, Gtk::Stock::OPEN);
 }
 
 void SetMousePointerToHand(bool yes)
