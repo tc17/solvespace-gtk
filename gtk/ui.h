@@ -67,29 +67,70 @@ private:
 	Glx& operator=(const Glx&);
 };
 
-class GlxGraphicsWindow : public Gtk::Window
+class FloatWindow : public Gtk::Bin
+{
+	int x_, y_;
+	Gtk::Entry entry_;
+	Glib::RefPtr<Gdk::Window> window_;
+public:
+	FloatWindow();
+	virtual ~FloatWindow();
+	void move(int x, int y);
+	void xshow();
+	void xhide();
+protected:
+	//virtual void forall_vfunc(gboolean include_internals, GtkCallback callback, gpointer callback_data);
+	virtual void on_size_allocate(Gtk::Allocation& allocation);
+	virtual void on_map();
+	virtual void on_realize();
+	virtual void on_show();
+	virtual void on_hide();
+private:
+	FloatWindow(const FloatWindow&);
+	FloatWindow& operator=(const FloatWindow&);
+};
+
+class GlxWindow : public Gtk::Window
+{
+	Gtk::Entry entry_;
+protected:
+	SSWindow* sswindow_;
+	Glx* glx_;
+	FloatWindow floatWindow_;
+public:
+	virtual ~GlxWindow();
+	Glx& widget();
+	void showEntry(int x, int y, const char *s);
+protected:
+	GlxWindow();
+	virtual void forall_vfunc(gboolean include_internals, GtkCallback callback, gpointer callback_data);
+	virtual void on_size_allocate(Gtk::Allocation& allocation);
+	virtual void on_map();
+	virtual void on_realize();
+
+private:
+	GlxWindow(const GlxWindow&);
+	GlxWindow& operator=(const GlxWindow&);
+};
+
+class GlxGraphicsWindow : public GlxWindow
 {
 	Gtk::Box box_;
-	SSWindow *sswindow_;
-	Glx* glx_;
 public:
-	static GlxGraphicsWindow& getGlxGraphicsWindow();
+	static GlxGraphicsWindow& getInstance();
 	virtual ~GlxGraphicsWindow();
-	Glx& widget();
 private:
 	GlxGraphicsWindow();
 	GlxGraphicsWindow(const GlxGraphicsWindow&);
 	GlxGraphicsWindow& operator=(const GlxGraphicsWindow&);
 };
 
-class GlxTextWindow : public Gtk::Window
+class GlxTextWindow : public GlxWindow 
 {
 	SSWindow *sswindow_;
-	Glx *glx_;
 public:
-	static GlxTextWindow& getGlxTextWindow();
+	static GlxTextWindow& getInstance();
 	virtual ~GlxTextWindow();
-	Glx& widget();
 private:
 	GlxTextWindow();
 	GlxTextWindow(const GlxTextWindow&);
