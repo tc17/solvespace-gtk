@@ -145,8 +145,7 @@ FloatWindow::FloatWindow() : x_(0), y_(0), entry_(), window_()
 }
 
 FloatWindow::~FloatWindow()
-{
-}
+{}
 
 void FloatWindow::move(int x, int y)
 {
@@ -281,7 +280,8 @@ void GlxWindow::showEntry(int x, int y, const char *s)
 	rx = rw/2 + x;
 	ry = rh/2 + y;
 
-	remove_accel_group(accelGroup_);
+	if (accelGroup_)
+		remove_accel_group(accelGroup_);
 	floatWindow_.showEntry(rx, ry, s);
 }
 
@@ -298,7 +298,8 @@ bool GlxWindow::entryIsVisible()
 void GlxWindow::entryOnActivate(const std::string& str)
 {
 	//floatWindow_.hideEntry();
-	add_accel_group(accelGroup_);
+	if (accelGroup_)
+		add_accel_group(accelGroup_);
 }
 
 GlxGraphicsWindow& GlxGraphicsWindow::getInstance()
