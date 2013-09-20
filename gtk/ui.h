@@ -36,6 +36,7 @@ public:
 	virtual void button2Press(const Mouse& mouse, Button button) = 0;
 	virtual void mouseMoved(const Mouse& mouse, const ButtonsState& buttons, const ModState& mods) = 0;
 	virtual void mouseLeave() = 0;
+	virtual void editDone(const char *str) = 0;
 	virtual ~SSWindow() {};
 };
 
@@ -125,12 +126,10 @@ private:
 	GlxGraphicsWindow();
 	GlxGraphicsWindow(const GlxGraphicsWindow&);
 	GlxGraphicsWindow& operator=(const GlxGraphicsWindow&);
-	void entryOnActivate(const std::string& str);
 };
 
 class GlxTextWindow : public GlxWindow 
 {
-	SSWindow *sswindow_;
 public:
 	static GlxTextWindow& getInstance();
 	virtual ~GlxTextWindow();

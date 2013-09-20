@@ -97,6 +97,11 @@ public:
 		_window.MouseLeave();
 	}
 
+	virtual void editDone(const char *str)
+	{
+		_window.EditControlDone(str);
+	}
+
 	virtual ~SSGraphics() {}
 private:
 	SSGraphics(const SSGraphics&);
@@ -129,6 +134,11 @@ public:
 	virtual void mouseLeave()
 	{
 		_window.MouseLeave();
+	}
+
+	virtual void editDone(const char *str)
+	{
+		_window.EditControlDone(str);
 	}
 
 	virtual ~SSText() {}
@@ -300,6 +310,8 @@ void GlxWindow::entryOnActivate(const std::string& str)
 	//floatWindow_.hideEntry();
 	if (accelGroup_)
 		add_accel_group(accelGroup_);
+	if (sswindow_)
+		sswindow_->editDone(str.c_str());
 }
 
 GlxGraphicsWindow& GlxGraphicsWindow::getInstance()
@@ -367,8 +379,6 @@ GlxGraphicsWindow::GlxGraphicsWindow() : box_(Gtk::ORIENTATION_VERTICAL)
 
 	add_accel_group(accelGroup_);
 
-	floatWindow_.signal_entry_activate().connect(sigc::mem_fun(*this, &GlxGraphicsWindow::entryOnActivate));
-
 	show_all();
 }
 
@@ -377,12 +387,6 @@ GlxGraphicsWindow::~GlxGraphicsWindow()
 	delete glx_;
 	delete sswindow_;	
 }
-
-void GlxGraphicsWindow::entryOnActivate(const std::string& str)
-{
-	SS.GW.EditControlDone(str.c_str());	
-}
-
 
 GlxTextWindow& GlxTextWindow::getInstance()
 {
