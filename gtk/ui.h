@@ -73,21 +73,23 @@ class FloatWindow : public Gtk::Bin
 	Gtk::Entry entry_;
 	Glib::RefPtr<Gdk::Window> window_;
 public:
+	typedef sigc::signal<void, const std::string&> type_signal_entry_activate;
 	FloatWindow();
 	virtual ~FloatWindow();
-	void move(int x, int y);
-	void xshow();
-	void xhide();
+	void showEntry(int x, int y, const std::string& str);
+	void hideEntry();
+	bool entryIsVisible();
+	type_signal_entry_activate signal_entry_activate();
 protected:
-	//virtual void forall_vfunc(gboolean include_internals, GtkCallback callback, gpointer callback_data);
 	virtual void on_size_allocate(Gtk::Allocation& allocation);
 	virtual void on_map();
 	virtual void on_realize();
-	virtual void on_show();
-	virtual void on_hide();
+	type_signal_entry_activate signal_entry_activate_;
 private:
 	FloatWindow(const FloatWindow&);
 	FloatWindow& operator=(const FloatWindow&);
+	void entryOnActivate();
+	void move(int x, int y);
 };
 
 class GlxWindow : public Gtk::Window
@@ -97,20 +99,20 @@ protected:
 	SSWindow* sswindow_;
 	Glx* glx_;
 	FloatWindow floatWindow_;
+	Glib::RefPtr<Gtk::AccelGroup> accelGroup_;
 public:
 	virtual ~GlxWindow();
 	Glx& widget();
 	void showEntry(int x, int y, const char *s);
+	void hideEntry();
+	bool entryIsVisible();
 protected:
 	GlxWindow();
 	virtual void forall_vfunc(gboolean include_internals, GtkCallback callback, gpointer callback_data);
-	virtual void on_size_allocate(Gtk::Allocation& allocation);
-	virtual void on_map();
-	virtual void on_realize();
-
 private:
 	GlxWindow(const GlxWindow&);
 	GlxWindow& operator=(const GlxWindow&);
+	void entryOnActivate(const std::string& str);
 };
 
 class GlxGraphicsWindow : public GlxWindow
@@ -123,6 +125,7 @@ private:
 	GlxGraphicsWindow();
 	GlxGraphicsWindow(const GlxGraphicsWindow&);
 	GlxGraphicsWindow& operator=(const GlxGraphicsWindow&);
+	void entryOnActivate(const std::string& str);
 };
 
 class GlxTextWindow : public GlxWindow 

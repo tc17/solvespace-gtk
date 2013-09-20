@@ -281,7 +281,7 @@ void MakeMatrix(double *mat, double a11, double a12, double a13, double a14,
                              double a41, double a42, double a43, double a44);
 std::string MakePathRelative(const std::string& base, const std::string& path);
 std::string MakePathAbsolute(const std::string& base, const std::string& path);
-bool StringAllPrintable(char *str);
+bool StringAllPrintable(const char *str);
 bool StringEndsIn(const std::string& str, const char *ending);
 void Message(const char *str, ...);
 void Error(const char *str, ...);

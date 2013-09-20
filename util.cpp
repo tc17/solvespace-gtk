@@ -63,9 +63,12 @@ std::string MakePathAbsolute(const std::string &basep, const std::string &pathp)
     return out;
 }
 
-bool StringAllPrintable(char *str)
+/*
+ * FIXME
+ */
+bool StringAllPrintable(const char *str)
 {
-    char *t;
+    const char *t;
     for(t = str; *t; t++) {
         if(!(isalnum(*t) || *t == '-' || *t == '_')) {
             return false;

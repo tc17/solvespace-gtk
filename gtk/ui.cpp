@@ -140,7 +140,8 @@ private:
 FloatWindow::FloatWindow() : x_(0), y_(0), entry_(), window_()
 {
 	set_has_window(false);
-	add(entry_);		
+	add(entry_);
+	entry_.signal_activate().connect(sigc::mem_fun(*this, &FloatWindow::entryOnActivate));	
 }
 
 FloatWindow::~FloatWindow()
@@ -155,16 +156,28 @@ void FloatWindow::move(int x, int y)
 		window_->move(x, y);
 }
 
-void FloatWindow::xshow()
+void FloatWindow::showEntry(int x, int y, const std::string& str)
 {
-	map();
+	move(x, y);
+	entry_.set_text(str);
 	show();
+	map();
 }
 
-void FloatWindow::xhide()
+void FloatWindow::hideEntry()
 {
-	hide();
 	unmap();
+	hide();
+}
+
+bool FloatWindow::entryIsVisible()
+{
+	return get_visible();
+}
+
+FloatWindow::type_signal_entry_activate FloatWindow::signal_entry_activate()
+{
+	return signal_entry_activate_;
 }
 
 void FloatWindow::on_size_allocate(Gtk::Allocation& allocation)
@@ -196,7 +209,7 @@ void FloatWindow::on_map()
 void FloatWindow::on_realize()
 {
 	Gtk::Bin::on_realize();
-#if 1
+
 	if (!window_) {
 		GdkWindowAttr attr;
 
@@ -207,12 +220,11 @@ void FloatWindow::on_realize()
 		attr.width = allocation.get_width();
 		attr.height = allocation.get_height();
 
-		attr.event_mask = entry_.get_events() | Gdk::EXPOSURE_MASK;
+		attr.event_mask = get_events() | Gdk::EXPOSURE_MASK;
 		attr.window_type = GDK_WINDOW_CHILD;
 		attr.wclass = GDK_INPUT_OUTPUT;
-		//attr.type_hint = GDK_WINDOW_TYPE_HINT_MENU;
 
-		window_ = Gdk::Window::create(get_parent_window(), &attr, GDK_WA_X | GDK_WA_Y);//| GDK_WA_TYPE_HINT);
+		window_ = Gdk::Window::create(get_parent_window(), &attr, GDK_WA_X | GDK_WA_Y);
 
 		window_->ensure_native();
 
@@ -231,118 +243,27 @@ void FloatWindow::on_realize()
 	//	entryWindow_->set_keep_above();
 		window_->set_user_data(gobj());
 	}
-#endif
 }
 
-void FloatWindow::on_show()
+void FloatWindow::entryOnActivate()
 {
-	printf("%s\n", __func__);
-	Gtk::Bin::on_show();
-	//map();
+	signal_entry_activate_.emit(entry_.get_text());
 }
 
-void FloatWindow::on_hide()
-{
-	//unmap();
-	Gtk::Bin::on_hide();
-}
-
-GlxWindow::GlxWindow() : sswindow_(), glx_(), floatWindow_()
+GlxWindow::GlxWindow() : sswindow_(), glx_(), floatWindow_(), accelGroup_()
 {
 	set_redraw_on_allocate(false);
 	floatWindow_.set_parent(*this);
-	//add(floatWindow_);
-	//add(entry_);
-	//entry_.hide();
-	//add(entry_);
-	//editWindow_.set_transient_for(*this);
-	//editWindow_.set_attached_to(*this);
-	//editWindow_.set_modal(true);
-	//editWindow_.set_keep_above(true);
-	//editWindow_.set_gravity(Gdk::GRAVITY_CENTER);
-	//entry_.set_parent_window(get_window());
-	//entry_.set_window(get_window());
+	floatWindow_.signal_entry_activate().connect(sigc::mem_fun(*this, &GlxWindow::entryOnActivate));
 }	
 
 GlxWindow::~GlxWindow()
 {}
 
-#if 1
 void GlxWindow::forall_vfunc(gboolean include_internals, GtkCallback callback, gpointer callback_data)
 {
 	Gtk::Window::forall_vfunc(include_internals, callback, callback_data);
 	callback(static_cast<Gtk::Widget*>(&floatWindow_)->gobj(), callback_data);
-}
-#endif
-
-void GlxWindow::on_size_allocate(Gtk::Allocation& allocation)
-{
-#if 0
-	set_allocation(allocation);
-	printf("%s, x: %d, y: %d, w: %d, h: %d\n", __func__,
-			allocation.get_x(), allocation.get_y(), allocation.get_width(), allocation.get_height());
-#if 0	
-	if (entryWindow_) {
-		printf("%s: entryWindow_ != NULL\n", __func__);
-		entryWindow_->move_resize(10, 10, 100, 30);
-	}
-#endif
-	if (floatWindow_.get_visible()) {
-		printf("entry is visible\n");
-		Gtk::Allocation entry_allocation;
-		entry_allocation.set_x(0);
-		entry_allocation.set_y(0);
-		entry_allocation.set_width(100);
-		entry_allocation.set_height(30);
-		//entry_allocation.set_x(40);
-		//entry_allocation.set_y(50);
-		floatWindow_.size_allocate(entry_allocation);
-	}
-#endif
-	Gtk::Window::on_size_allocate(allocation);
-}
-
-void GlxWindow::on_map()
-{
-	Gtk::Window::on_map();
-//	entry_.map();
-	//entryWindow_->show();
-	//floatWindow_.map();
-}
-
-void GlxWindow::on_realize()
-{
-	Gtk::Window::on_realize();
-#if 0
-	if (!entryWindow_) {
-		GdkWindowAttr attr;
-
-		Gtk::Allocation allocation = get_allocation();
-
-		attr.x = allocation.get_x();
-		attr.y = allocation.get_y();
-		attr.width = allocation.get_width();
-		attr.height = allocation.get_height();
-
-		attr.event_mask = entry_.get_events() | Gdk::EXPOSURE_MASK;
-		attr.window_type = GDK_WINDOW_CHILD;
-		attr.wclass = GDK_INPUT_OUTPUT;
-		attr.type_hint = GDK_WINDOW_TYPE_HINT_MENU;
-
-		entryWindow_ = Gdk::Window::create(get_window(), &attr, GDK_WA_X | GDK_WA_Y | GDK_WA_TYPE_HINT);
-
-		entryWindow_->ensure_native();
-
-		//unset_background_color();
-		//set_double_buffered(false);
-		entry_.set_parent_window(entryWindow_);
-
-		// make the window recieve events
-		//register_window(window_);
-	//	entryWindow_->set_keep_above();
-		entryWindow_->set_user_data(entry_.gobj());
-	}
-#endif
 }
 
 Glx& GlxWindow::widget()
@@ -355,18 +276,29 @@ void GlxWindow::showEntry(int x, int y, const char *s)
 {
 	int rx, ry, rw, rh;
 
-	//get_position(rx, ry);
 	get_size(rw, rh);
 
 	rx = rw/2 + x;
 	ry = rh/2 + y;
 
-	printf("x: %d, y: %d, rw: %d, rh: %d\n", x, y, rw, rh);
+	remove_accel_group(accelGroup_);
+	floatWindow_.showEntry(rx, ry, s);
+}
 
-//	entry_.set_text(s);
-//
-	floatWindow_.move(rx, ry);
-	floatWindow_.xshow();
+void GlxWindow::hideEntry()
+{
+	floatWindow_.hideEntry();
+}
+
+bool GlxWindow::entryIsVisible()
+{
+	return floatWindow_.entryIsVisible();
+}
+
+void GlxWindow::entryOnActivate(const std::string& str)
+{
+	//floatWindow_.hideEntry();
+	add_accel_group(accelGroup_);
 }
 
 GlxGraphicsWindow& GlxGraphicsWindow::getInstance()
@@ -430,7 +362,11 @@ GlxGraphicsWindow::GlxGraphicsWindow() : box_(Gtk::ORIENTATION_VERTICAL)
 	if (menuBar)
 		box_.pack_start(*menuBar, Gtk::PACK_SHRINK);
 
-	add_accel_group(uiManager->get_accel_group());
+	accelGroup_ = uiManager->get_accel_group();
+
+	add_accel_group(accelGroup_);
+
+	floatWindow_.signal_entry_activate().connect(sigc::mem_fun(*this, &GlxGraphicsWindow::entryOnActivate));
 
 	show_all();
 }
@@ -439,6 +375,11 @@ GlxGraphicsWindow::~GlxGraphicsWindow()
 {
 	delete glx_;
 	delete sswindow_;	
+}
+
+void GlxGraphicsWindow::entryOnActivate(const std::string& str)
+{
+	SS.GW.EditControlDone(str.c_str());	
 }
 
 
@@ -716,6 +657,7 @@ void PaintGraphics(void)
 
 void HideTextEditControl(void)
 {
+	GlxTextWindow::getInstance().hideEntry();
 }
 
 void ShowTextEditControl(int x, int y, char *s)
@@ -725,10 +667,12 @@ void ShowTextEditControl(int x, int y, char *s)
 
 bool TextEditControlIsVisible(void)
 {
+	return GlxTextWindow::getInstance().entryIsVisible();
 }	
 
 void HideGraphicsEditControl(void)
 {
+	GlxGraphicsWindow::getInstance().hideEntry();
 }
 
 void ShowGraphicsEditControl(int x, int y, char *s)
@@ -738,7 +682,7 @@ void ShowGraphicsEditControl(int x, int y, char *s)
 
 bool GraphicsEditControlIsVisible(void)
 {
-	return false;
+	return GlxGraphicsWindow::getInstance().entryIsVisible();
 }
 
 void ShowTextWindow(bool visible)
