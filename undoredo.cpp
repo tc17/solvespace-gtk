@@ -49,28 +49,7 @@ void SolveSpace::PushFromCurrentOnto(UndoStack *uk) {
     ZERO(ut);
     for(i = 0; i < SK.group.n; i++) {
         Group *src = &(SK.group.elem[i]);
-        Group dest = *src;
-        // And then clean up all the stuff that needs to be a deep copy,
-        // and zero out all the dynamic stuff that will get regenerated.
-        dest.clean = false;
-        ZERO(&(dest.solved));
-        ZERO(&(dest.polyLoops));
-        ZERO(&(dest.bezierLoops));
-        ZERO(&(dest.bezierOpens));
-        ZERO(&(dest.polyError));
-        ZERO(&(dest.thisMesh));
-        ZERO(&(dest.runningMesh));
-        ZERO(&(dest.thisShell));
-        ZERO(&(dest.runningShell));
-        ZERO(&(dest.displayMesh));
-        ZERO(&(dest.displayEdges));
-
-        ZERO(&(dest.remap));
-        src->remap.DeepCopyInto(&(dest.remap));
-
-        ZERO(&(dest.impMesh));
-        ZERO(&(dest.impShell));
-        ZERO(&(dest.impEntity));
+        Group dest = src->zeroClone();
         ut->group.Add(&dest);
     }
     for(i = 0; i < SK.request.n; i++) {

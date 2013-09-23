@@ -39,6 +39,37 @@ void Group::Clear(void) {
     impFileRel.release();
 }
 
+Group Group::zeroClone()
+{
+	Group dest = *this;
+        // And then clean up all the stuff that needs to be a deep copy,
+        // and zero out all the dynamic stuff that will get regenerated.
+        dest.clean = false;
+        ZERO(&(dest.solved));
+        ZERO(&(dest.polyLoops));
+        ZERO(&(dest.bezierLoops));
+        ZERO(&(dest.bezierOpens));
+        ZERO(&(dest.polyError));
+        ZERO(&(dest.thisMesh));
+        ZERO(&(dest.runningMesh));
+        ZERO(&(dest.thisShell));
+        ZERO(&(dest.runningShell));
+        ZERO(&(dest.displayMesh));
+        ZERO(&(dest.displayEdges));
+
+        ZERO(&(dest.remap));
+        remap.DeepCopyInto(&(dest.remap));
+
+        ZERO(&(dest.impMesh));
+        ZERO(&(dest.impShell));
+        ZERO(&(dest.impEntity));
+
+	dest.impFile.retain();
+	dest.impFileRel.retain();
+
+	return dest;
+}
+
 void Group::AddParam(IdList<Param,hParam> *param, hParam hp, double v) {
     Param pa;
     memset(&pa, 0, sizeof(pa));
@@ -55,7 +86,8 @@ bool Group::IsVisible(void) {
 }
 
 void Group::MenuGroup(int id) {
-    Group g = Group();
+    Group g;
+    ZERO(&g);
     g.visible = true;
     g.color = RGB(100, 100, 100);
     g.scale = 1;
@@ -207,7 +239,7 @@ void Group::MenuGroup(int id) {
 		    ? std::string(impFile)
 		    : impFile.substr(0, dot);
 
-	    size_t start, pos;
+	    size_t pos, start = 0;
 	    for (pos = 0; pos < groupName.size(); ++pos) {
 		char c = groupName[pos];
 	   	if (c == '/' || c == '\\') {

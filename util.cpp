@@ -56,7 +56,7 @@ std::string MakePathAbsolute(const std::string &basep, const std::string &pathp)
 
     if (ind == std::string::npos) return std::string();
     
-    std::string out = basep.substr(0, ind);
+    std::string out = basep.substr(0, ind + 1);
     out += pathp;
     out = GetAbsoluteFilename(out);
     

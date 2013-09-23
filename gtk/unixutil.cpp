@@ -74,6 +74,14 @@ void dbp(const char *format, ...)
 
 std::string GetAbsoluteFilename(const std::string& path)
 {
+	std::string rv;
+	char *rpath = realpath(path.c_str(), NULL);
+	if (rpath) {
+		rv = rpath;
+		free(rpath);
+	}
+
+	return rv;
 }
 
 SDWORD GetMilliseconds(void)

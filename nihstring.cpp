@@ -1,67 +1,147 @@
-#include "nihstring.h"
+#include <cassert>
 #include "solvespace.h"
+#include "nihstring.h"
 
-struct NihString NihString::newNihString()
+NihCacheEntry NihCacheEntry::newNihCacheEntry(size_t index)
 {
-	NihString rv = {0, 0, NULL};
-
-	return rv;
-}
-	
-struct NihString NihString::newNihString(const char *s)
-{
-	NihString rv;
-	
-	rv.count = 1;
-	rv.size = strlen(s);
-	rv.str = static_cast<char *>(MemAlloc(rv.size + 1));
-	strcpy(rv.str, s);
-
+	NihCacheEntry rv = { NULL, 0, 0, index };
 	return rv;
 }
 
-struct NihString NihString::newNihString(const std::string& s)
+NihCacheEntry& NihCacheEntry::set(const char *s)
 {
-	return newNihString(s.c_str());
-}
+	assert(count_ == 0);
+	assert(size_ == 0);
+	assert(str_ == NULL);
 
-NihString& NihString::retain()
-{
-	count++;
+	count_ = 1;
+	if (s) {
+		size_ = strlen(s);
+		str_ = static_cast<char *>(MemAlloc(size_ + 1));
+		strcpy(str_, s);
+	}
+
 	return *this;
 }
 
-NihString& NihString::release()
-{	
-	count--;
-	if (count)
-		return *this;
-	
-	if (count < 0)
-		Error("string already released");
+NihCacheEntry& NihCacheEntry::set(const std::string& s)
+{
+	assert(count_ == 0);
+	assert(size_ == 0);
+	assert(str_ == NULL);
 
-	free();
+	count_ = 1;
+	if (!s.empty()) {
+		size_ = s.size();
+		str_ = static_cast<char *>(MemAlloc(size_ + 1));
+		strcpy(str_, s.c_str());
+	}
+
 	return *this;
 }
 
-void NihString::free()
+const char* NihCacheEntry::get()
 {
-	MemFree(str);
-	size = 0;
-	str = NULL;	
+	return str_;
 }
 
-const char* NihString::c_str()
+void NihCacheEntry::free()
 {
-	return str;
+	assert(count_ == 0);
+
+	MemFree(str_);
+	size_ = 0;
+	str_ = NULL;
 }
 
-std::string NihString::std_str()
+void NihCacheEntry::retain()
 {
-	return std::string(str);
+	assert(count_ > 0);
+	count_++;
 }
 
-bool NihString::empty()
+bool NihCacheEntry::release()
 {
-	return (size == 0);
+	assert(count_ > 0);
+	count_--;
+	if (count_ == 0) {
+		free();
+		return true;
+	}
+
+	return false;
+}
+
+size_t NihCacheEntry::size()
+{
+	return size_;
+}
+
+NihCache::NihEntry NihCache::getEmpty()
+{
+	if (empty_bucket_.empty()) {
+		size_t new_allocated = allocated_ * 2;
+		cache_ = static_cast<NihCacheEntry*>(MemRealloc(cache_, new_allocated * sizeof(*cache_)));
+		populateBucket(allocated_, new_allocated);
+		allocated_ = new_allocated;
+	}
+
+	NihCache::NihEntry rv = empty_bucket_.front()->index_;
+	empty_bucket_.pop();
+
+	return rv;
+}
+
+NihCache::NihEntry NihCache::add(const char* s)
+{
+	NihCache::NihEntry rv = getEmpty();
+	cache_[rv].set(s);
+	printf("%s: %s, index: %lu\n", __func__, s, rv);
+	return rv;	
+}
+
+NihCache::NihEntry NihCache::add(const std::string& s)
+{
+	NihCache::NihEntry rv = getEmpty();
+	cache_[rv].set(s);
+	printf("%s: %s, index: %lu\n", __func__, s.c_str(), rv);
+	return rv;
+}
+
+const char* NihCache::get(NihEntry entry)
+{
+	assert(entry < allocated_);
+
+	printf("%s: %s, index: %lu\n", __func__, cache_[entry].get(), entry);
+
+	return cache_[entry].get();
+}
+
+NihCache::NihEntry NihCache::retain(NihEntry entry)
+{
+	assert(entry < allocated_);
+	if (entry != Nil)
+		cache_[entry].retain();
+
+	printf("%s: index: %lu\n", __func__, entry);
+
+	return entry;
+}
+
+NihCache::NihEntry NihCache::release(NihEntry entry)
+{
+	assert(entry < allocated_);
+	if (entry != Nil && cache_[entry].release()) {
+		empty_bucket_.push(&cache_[entry]);
+	}
+
+	printf("%s: index: %lu\n", __func__, entry);
+
+	return entry;
+}
+
+size_t NihCache::size(NihEntry entry)
+{
+	assert(entry < allocated_);
+	return cache_[entry].size();
 }

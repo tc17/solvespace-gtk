@@ -736,7 +736,7 @@ static bool fileDialog(std::string *file, const char *pattern, const Gtk::StockI
 	int rv = fileChooser.run();
 	*file = fileChooser.get_filename();
 
-	return (rv == Gtk::RESPONSE_ACCEPT);
+	return (rv == Gtk::RESPONSE_OK);
 }
 
 bool GetSaveFile(std::string *file, const char *defExtension, const char *selPattern)

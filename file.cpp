@@ -114,8 +114,8 @@ const SolveSpace::SaveTable SolveSpace::SAVED[] = {
     { 'g',  "Group.allDimsReference",   'b',    &(SS.sv.g.allDimsReference)   },
     { 'g',  "Group.scale",              'f',    &(SS.sv.g.scale)              },
     { 'g',  "Group.remap",              'M',    &(SS.sv.g.remap)              },
-    { 'g',  "Group.impFile",            'P',    &(SS.sv.g.impFile)            },
-    { 'g',  "Group.impFileRel",         'P',    &(SS.sv.g.impFileRel)         },
+    { 'g',  "Group.impFile",            's',    &(SS.sv.g.impFile)            },
+    { 'g',  "Group.impFileRel",         's',    &(SS.sv.g.impFileRel)         },
 
     { 'p',  "Param.h.v.",               'x',    &(SS.sv.p.h.v)                },
     { 'p',  "Param.val",                'f',    &(SS.sv.p.val)                },
@@ -221,6 +221,7 @@ void SolveSpace::SaveUsingTable(int type) {
             case 'f': fprintf(fh, "%.20f", *((double *)p)); break;
             case 'N': fprintf(fh, "%s", ((NameStr *)p)->str); break;
             case 'P': fprintf(fh, "%s", (char *)p); break;
+            case 's': fprintf(fh, "%s", ((NihString*)p)->c_str()); break;
 
             case 'M': {
                 int j;
@@ -369,6 +370,14 @@ void SolveSpace::LoadUsingTable(char *key, char *val) {
                 case 'P':
                     strcpy((char *)p, val);
                     break;
+
+		case 's': {
+			NihString *str = static_cast<NihString *>(p);
+			if (str)
+				str->release();
+                    	*str = NihString::newNihString(val);
+		    }
+		    break;
 
                 case 'M': {
                     IdList<EntityMap,EntityId> *m =
@@ -642,8 +651,9 @@ void SolveSpace::ReloadAllImported(void) {
         } else {
             // It doesn't exist. Perhaps the entire tree has moved, and we
             // can use the relative filename to get us back.
-            if(SS.saveFile[0]) {
+            if(!SS.saveFile.empty()) {
 		std::string fromRel = MakePathAbsolute(SS.saveFile, g->impFileRel.std_str());
+		printf("%s: fromRel: %s, FileRel: %s\n", __func__, fromRel.c_str(), g->impFileRel.c_str());
                 test = fopen(fromRel.c_str(), "rb");
                 if(test) {
                     fclose(test);
@@ -657,7 +667,7 @@ void SolveSpace::ReloadAllImported(void) {
         if(LoadEntitiesFromFile(g->impFile.std_str(),
                         &(g->impEntity), &(g->impMesh), &(g->impShell)))
         {
-            if(SS.saveFile[0]) {
+            if(!SS.saveFile.empty()) {
                 // Record the imported file's name relative to our filename;
                 // if the entire tree moves, then everything will still work
 		g->impFileRel.release();

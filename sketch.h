@@ -192,6 +192,7 @@ public:
     void Activate(void);
     char *DescriptionString(void);
     void Clear(void);
+    Group zeroClone();
 
     static void AddParam(ParamList *param, hParam hp, double v);
     void Generate(EntityList *entity, ParamList *param);
