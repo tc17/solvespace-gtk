@@ -102,6 +102,8 @@ public:
 		_window.EditControlDone(str);
 	}
 
+	virtual void scroll(int newPos) {}
+
 	virtual ~SSGraphics() {}
 private:
 	SSGraphics(const SSGraphics&);
@@ -139,6 +141,11 @@ public:
 	virtual void editDone(const char *str)
 	{
 		_window.EditControlDone(str);
+	}
+
+	virtual void scroll(int newPos)
+	{
+		_window.ScrollbarEvent(newPos);
 	}
 
 	virtual ~SSText() {}
@@ -394,13 +401,21 @@ GlxTextWindow& GlxTextWindow::getInstance()
 	return instance;
 }
 
-GlxTextWindow::GlxTextWindow()
+GlxTextWindow::GlxTextWindow() : box_(), adj_(), scroll_()
 {
 	sswindow_ = new SSText(SS.TW);
 	glx_ = new Glx(*sswindow_, false);
 
 //	set_type_hint(Gdk::WINDOW_TYPE_HINT_UTILITY);
-	add(*glx_);
+//
+	adj_ = Gtk::Adjustment::create(0, 0, 0);
+	adj_->signal_value_changed().connect(sigc::mem_fun(*this, &GlxTextWindow::adjOnValueChanged));
+
+	scroll_.set_adjustment(adj_);
+	scroll_.set_orientation(Gtk::ORIENTATION_VERTICAL);
+	box_.pack_start(*glx_);
+	box_.pack_start(scroll_, Gtk::PACK_SHRINK);
+	add(box_);
 
 	show_all();
 }
@@ -409,6 +424,22 @@ GlxTextWindow::~GlxTextWindow()
 {
 	delete glx_;
 	delete sswindow_;
+}
+
+void GlxTextWindow::moveScroll(int pos, int maxPos, int page)
+{
+	printf("%s: pos: %d, maxPos: %d, page: %d\n", __func__, pos, maxPos, page);
+	//scroll_.set_range(0, maxPos);
+	//scroll_.set_increments(1, page);
+	//scroll_.set_value(pos);
+	adj_->set_upper(maxPos);
+	adj_->set_page_size(page);
+	adj_->set_value(pos);
+}
+
+void GlxTextWindow::adjOnValueChanged()
+{
+	sswindow_->scroll(adj_->get_value());	
 }
 
 Glx::Glx(SSWindow& w, bool translate) : xdisplay_(), xvinfo_(),
@@ -757,6 +788,7 @@ void SetMousePointerToHand(bool yes)
 
 void MoveTextScrollbarTo(int pos, int maxPos, int page)
 {
+	GlxTextWindow::getInstance().moveScroll(pos, maxPos, page);
 }
 
 void SetTimerFor(int milliseconds)

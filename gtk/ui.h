@@ -37,6 +37,7 @@ public:
 	virtual void mouseMoved(const Mouse& mouse, const ButtonsState& buttons, const ModState& mods) = 0;
 	virtual void mouseLeave() = 0;
 	virtual void editDone(const char *str) = 0;
+	virtual void scroll(int newPos) = 0;
 	virtual ~SSWindow() {};
 };
 
@@ -130,13 +131,18 @@ private:
 
 class GlxTextWindow : public GlxWindow 
 {
+	Gtk::Box box_;
+	Glib::RefPtr<Gtk::Adjustment> adj_;
+	Gtk::Scrollbar scroll_;
 public:
 	static GlxTextWindow& getInstance();
 	virtual ~GlxTextWindow();
+	void moveScroll(int pos, int maxPos, int page);
 private:
 	GlxTextWindow();
 	GlxTextWindow(const GlxTextWindow&);
 	GlxTextWindow& operator=(const GlxTextWindow&);
+	void adjOnValueChanged();
 };
 
 #endif /* GTK_UI_H */
