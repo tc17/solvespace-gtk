@@ -44,18 +44,22 @@ private:
 };
 
 class PopupMenu {
-	Glib::RefPtr<Gtk::UIManager> uiManager_;
-	Gtk::UIManager::ui_merge_id rootID_;
-	std::string path_;
-	std::string lastItem_;
+	Gtk::Menu menu_;
+	Gtk::Menu *submenu_;
+	bool wait_;
+	int id_;
 public:
 	static PopupMenu& getInstance();
 	void addItem(const char* label, int id);
-	int show(guint button, guint activateTime);
-	void onSelectionDone();
+	void addSubmenu();
+	int show();
 private:
 	PopupMenu();
 	~PopupMenu();	
+	void onSelectionDone();
+	void onActivate(int id);
+	void onSelect(Gtk::MenuItem *item);
+	void remove(Gtk::Widget& widget);
 };
 
 PopupMenu& PopupMenu::getInstance()
@@ -64,12 +68,9 @@ PopupMenu& PopupMenu::getInstance()
 	return instance;
 }
 
-PopupMenu::PopupMenu() : uiManager_(Gtk::UIManager::create()),
-	rootID_(), path_("/ui"), lastItem_()
+PopupMenu::PopupMenu() : menu_(), submenu_(&menu_), wait_(), id_()
 {
-	rootID_ = uiManager_->new_merge_id();
-	uiManager_->add_ui(rootID_, path_, "PopupMenu", "PopupMenu", Gtk::UI_MANAGER_POPUP);
-	path_ += "/PopupMenu";
+	menu_.signal_selection_done().connect(sigc::mem_fun(*this, &PopupMenu::onSelectionDone));
 }
 
 PopupMenu::~PopupMenu()
@@ -77,18 +78,68 @@ PopupMenu::~PopupMenu()
 
 void PopupMenu::addItem(const char* label, int id)
 {
-	const char* lbl = label ? label : "";
-	uiManager_->add_ui(uiManager_->new_merge_id(), path_, lbl, lbl,
-			id == CONTEXT_SEPARATOR ? Gtk::UI_MANAGER_SEPARATOR : Gtk::UI_MANAGER_MENUITEM);
-	if (id == CONTEXT_SUBMENU)
-		path_ += "/";
-		path_ += label;
+	printf("%s: label: %s, id: %d\n", __func__, label, id);
+	assert(id == CONTEXT_SEPARATOR || label);
+
+	Gtk::MenuItem *item = Gtk::manage(id == CONTEXT_SEPARATOR ? new Gtk::SeparatorMenuItem() : new Gtk::MenuItem(label));
+	
+	if (id == CONTEXT_SUBMENU) {
+		assert(submenu_ != &menu_);
+
+		Gtk::Menu *submenu = Gtk::manage(submenu_);
+		item->set_submenu(*submenu);
+
+		item->signal_select().connect(sigc::bind(sigc::mem_fun(*this, &PopupMenu::onSelect), item));
+
+		submenu_ = &menu_;
+	} else if (id != CONTEXT_SEPARATOR)
+		item->signal_activate().connect(sigc::bind(sigc::mem_fun(*this, &PopupMenu::onActivate), id));
+
+	submenu_->append(*item);
 }
 
-int PopupMenu::show(guint button, guint activateTime)
+void PopupMenu::addSubmenu()
 {
-	Gtk::Menu *menu = static_cast<Gtk::Menu*>(uiManager_->get_widget("PopupMenu"));
-	menu->signal_selection_done().connect(sigc::mem_fun(*this, &PopupMenu::onSelectionDone));
+	submenu_ = new Gtk::Menu();
+}
+
+int PopupMenu::show()
+{
+	menu_.show_all();
+	menu_.popup(BUTTON_RIGHT, gtk_get_current_event_time());
+
+	id_ = 0;
+	wait_ = true;
+	while (wait_)
+		Gtk::Main::iteration();
+
+	printf("%s: id: %d\n", __func__, id_);
+	menu_.foreach(sigc::mem_fun(*this, &PopupMenu::remove));
+
+	return id_;
+}
+
+void PopupMenu::onSelectionDone()
+{
+	wait_ = false;
+}
+
+void PopupMenu::onActivate(int id)
+{
+	id_ = id;
+	printf("%s: id: %d\n", __func__, id_);
+}
+
+void PopupMenu::onSelect(Gtk::MenuItem *item)
+{
+	printf("%s\n", __func__);
+	assert(item);
+	//item->get_submenu()->select_first(true);
+}
+
+void PopupMenu::remove(Gtk::Widget& widget)
+{
+	menu_.remove(widget);
 }
 
 class SSGraphics : public SSWindow
@@ -724,15 +775,17 @@ void InvalidateGraphics(void)
 
 void AddContextMenuItem(const char *label, int id)
 {
-
+	PopupMenu::getInstance().addItem(label, id);
 }
 
 int ShowContextMenu(void)
 {
+	return PopupMenu::getInstance().show();
 }
 
 void CreateContextSubmenu(void)
 {
+	PopupMenu::getInstance().addSubmenu();
 }
 
 void PaintGraphics(void)
