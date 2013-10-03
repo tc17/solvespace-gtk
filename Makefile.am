@@ -24,7 +24,8 @@ solvespace_LDADD = $(GL_LIBS) $(GLU_LIBS) $(PNG_LIBS) $(GTKMM_LIBS)
 
 #if HAVE_GTKMM
 solvespace_SOURCES += gtk/unixutil.cpp gtk/config.cpp gtk/ui.cpp gtk/ui.h gtk/aux_ui.cpp gtk/aux_ui.h \
-		      gtk/popup_menu_ui.cpp gtk/popup_menu_ui.h gtk/main.cpp
+		      gtk/popup_menu_ui.cpp gtk/popup_menu_ui.h gtk/float_window_ui.cpp gtk/float_window_ui.h \
+		      gtk/main.cpp
 #endif
 
 
