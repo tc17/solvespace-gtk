@@ -129,7 +129,6 @@ public:
 
 	virtual void timerCallback()
 	{
-		printf("%s\n", __func__);
 		window_.TimerCallback();
 	}
 

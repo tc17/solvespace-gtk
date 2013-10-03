@@ -9,7 +9,7 @@ PopupMenu& PopupMenu::getInstance()
 	return instance;
 }
 
-PopupMenu::PopupMenu() : menu_(), submenu_(&menu_), wait_(), id_()
+PopupMenu::PopupMenu() : menu_(), submenu_(&menu_), wait_(), id_(), populated_(false)
 {
 	menu_.signal_selection_done().connect(sigc::mem_fun(*this, &PopupMenu::onSelectionDone));
 }
@@ -36,6 +36,7 @@ void PopupMenu::addItem(const char* label, int id)
 		item->signal_activate().connect(sigc::bind(sigc::mem_fun(*this, &PopupMenu::onActivate), id));
 
 	submenu_->append(*item);
+	populated_ = true;
 }
 
 void PopupMenu::addSubmenu()
@@ -45,16 +46,19 @@ void PopupMenu::addSubmenu()
 
 int PopupMenu::show()
 {
-	menu_.show_all();
-	menu_.popup(BUTTON_RIGHT, gtk_get_current_event_time());
-
 	id_ = 0;
-	wait_ = true;
-	while (wait_)
-		Gtk::Main::iteration();
+	if (populated_) {
+		menu_.show_all();
+		menu_.popup(BUTTON_RIGHT, gtk_get_current_event_time());
 
-	printf("%s: id: %d\n", __func__, id_);
-	menu_.foreach(sigc::mem_fun(*this, &PopupMenu::remove));
+		wait_ = true;
+		while (wait_)
+			Gtk::Main::iteration();
+
+		printf("%s: id: %d\n", __func__, id_);
+		menu_.foreach(sigc::mem_fun(*this, &PopupMenu::remove));
+		populated_ = false;
+	}
 
 	return id_;
 }

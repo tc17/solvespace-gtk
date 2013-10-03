@@ -8,6 +8,7 @@ class PopupMenu {
 	Gtk::Menu *submenu_;
 	bool wait_;
 	int id_;
+	bool populated_;
 public:
 	static PopupMenu& getInstance();
 	void addItem(const char* label, int id);
