@@ -47,7 +47,7 @@ const char* NihCacheEntry::get()
 
 void NihCacheEntry::free()
 {
-	assert(count_ == 0);
+	//FIXME: assert(count_ == 0);
 
 	MemFree(str_);
 	size_ = 0;
