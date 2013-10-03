@@ -96,7 +96,7 @@ NihCache::NihEntry NihCache::add(const char* s)
 {
 	NihCache::NihEntry rv = getEmpty();
 	cache_[rv].set(s);
-	printf("%s: %s, index: %lu\n", __func__, s, rv);
+	//printf("%s: %s, index: %lu\n", __func__, s, rv);
 	return rv;	
 }
 
@@ -104,7 +104,7 @@ NihCache::NihEntry NihCache::add(const std::string& s)
 {
 	NihCache::NihEntry rv = getEmpty();
 	cache_[rv].set(s);
-	printf("%s: %s, index: %lu\n", __func__, s.c_str(), rv);
+	//printf("%s: %s, index: %lu\n", __func__, s.c_str(), rv);
 	return rv;
 }
 
@@ -112,7 +112,7 @@ const char* NihCache::get(NihEntry entry)
 {
 	assert(entry < allocated_);
 
-	printf("%s: %s, index: %lu\n", __func__, cache_[entry].get(), entry);
+	//printf("%s: %s, index: %lu\n", __func__, cache_[entry].get(), entry);
 
 	return cache_[entry].get();
 }
@@ -123,7 +123,7 @@ NihCache::NihEntry NihCache::retain(NihEntry entry)
 	if (entry != Nil)
 		cache_[entry].retain();
 
-	printf("%s: index: %lu\n", __func__, entry);
+	//printf("%s: index: %lu\n", __func__, entry);
 
 	return entry;
 }
@@ -135,7 +135,7 @@ NihCache::NihEntry NihCache::release(NihEntry entry)
 		empty_bucket_.push(&cache_[entry]);
 	}
 
-	printf("%s: index: %lu\n", __func__, entry);
+	//printf("%s: index: %lu\n", __func__, entry);
 
 	return entry;
 }
