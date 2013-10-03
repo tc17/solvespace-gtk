@@ -24,7 +24,7 @@ void FloatWindow::showEntry(int x, int y, const std::string& str)
 	entry_.set_text(str);
 	show();
 	map();
-	entry_.add_modal_grab();
+//	entry_.add_modal_grab();
 	entry_.grab_focus();
 }
 
