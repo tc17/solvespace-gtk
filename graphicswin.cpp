@@ -15,9 +15,6 @@
 #define mGrp  (&Group::MenuGroup)
 #define mAna  (&SolveSpace::MenuAnalyze)
 #define mHelp (&SolveSpace::MenuHelp)
-#define S 0x100
-#define C 0x200
-#define F(k) (0xf0+(k))
 const GraphicsWindow::MenuEntry GraphicsWindow::menu[] = {
 { 0, "&File",                               0,                  0,      NULL  },
 { 1, "&New\tCtrl+N",                        MNU_NEW,            'N'|C,  mFile },

@@ -38,6 +38,7 @@ public:
 	virtual void mouseLeave() = 0;
 	virtual void editDone(const char *str) = 0;
 	virtual void scroll(int newPos) = 0;
+	virtual bool keyPress(int key) = 0;
 	virtual ~SSWindow() {};
 };
 

@@ -1,47 +1,10 @@
 #include <string>
-#include <assert.h>
+#include <cassert>
 #include "solvespace.h"
 #include "ui.h"
+#include "aux_ui.h"
 
 std::string RecentFile[MAX_RECENT];
-
-class Label {
-	std::string _label;
-	std::string _accelerator;
-public:
-	Label(const std::string& label)
-	{
-		size_t sep = label.find_first_of('\t');	
-		_label = label.substr(0, sep);
-		replace(&_label, "&", "_");
-		if (sep != std::string::npos) {
-			_accelerator = label.substr(sep + 1, std::string::npos);
-			replace(&_accelerator, "Ctrl+", "<control>");
-			replace(&_accelerator, "Shift+", "<shift>");
-		}
-
-	}
-
-	const std::string& label()
-	{
-		return _label;
-	}
-
-	const std::string& accelerator()
-	{
-		return _accelerator;
-	}
-
-private:
-	void replace(std::string *str, const std::string& from, const std::string& to)
-	{
-		assert(str);
-		size_t pos = str->find(from);
-		if (pos != std::string::npos) {
-			str->replace(pos, from.size(), to);
-		}
-	}
-};
 
 class PopupMenu {
 	Gtk::Menu menu_;
@@ -78,7 +41,6 @@ PopupMenu::~PopupMenu()
 
 void PopupMenu::addItem(const char* label, int id)
 {
-	printf("%s: label: %s, id: %d\n", __func__, label, id);
 	assert(id == CONTEXT_SEPARATOR || label);
 
 	Gtk::MenuItem *item = Gtk::manage(id == CONTEXT_SEPARATOR ? new Gtk::SeparatorMenuItem() : new Gtk::MenuItem(label));
@@ -203,6 +165,11 @@ public:
 
 	virtual void scroll(int newPos) {}
 
+	virtual bool keyPress(int key)
+	{
+		return _window.KeyDown(key);
+	}
+
 	virtual ~SSGraphics() {}
 private:
 	SSGraphics(const SSGraphics&);
@@ -247,6 +214,11 @@ public:
 		_window.ScrollbarEvent(newPos);
 	}
 
+	virtual bool keyPress(int key)
+	{
+		return false;
+	}
+
 	virtual ~SSText() {}
 private:
 	SSText(const SSText&);
@@ -277,10 +249,13 @@ void FloatWindow::showEntry(int x, int y, const std::string& str)
 	entry_.set_text(str);
 	show();
 	map();
+	entry_.add_modal_grab();
+	entry_.grab_focus();
 }
 
 void FloatWindow::hideEntry()
 {
+	entry_.remove_modal_grab();
 	unmap();
 	hide();
 }
@@ -343,7 +318,6 @@ void FloatWindow::on_realize()
 
 		window_->ensure_native();
 
-		//unset_background_color();
 		//set_double_buffered(false);
 		set_window(window_);
 		set_has_window(true);
@@ -403,7 +377,10 @@ void GlxWindow::showEntry(int x, int y, const char *s)
 
 void GlxWindow::hideEntry()
 {
+	assert(glx_);
+
 	floatWindow_.hideEntry();
+	glx_->grab_focus();
 }
 
 bool GlxWindow::entryIsVisible()
@@ -484,7 +461,7 @@ GlxGraphicsWindow::GlxGraphicsWindow() : box_(Gtk::ORIENTATION_VERTICAL)
 	accelGroup_ = uiManager->get_accel_group();
 
 	add_accel_group(accelGroup_);
-
+	
 	show_all();
 }
 
@@ -527,10 +504,6 @@ GlxTextWindow::~GlxTextWindow()
 
 void GlxTextWindow::moveScroll(int pos, int maxPos, int page)
 {
-	printf("%s: pos: %d, maxPos: %d, page: %d\n", __func__, pos, maxPos, page);
-	//scroll_.set_range(0, maxPos);
-	//scroll_.set_increments(1, page);
-	//scroll_.set_value(pos);
 	adj_->set_upper(maxPos);
 	adj_->set_page_size(page);
 	adj_->set_value(pos);
@@ -546,6 +519,7 @@ Glx::Glx(SSWindow& w, bool translate) : xdisplay_(), xvinfo_(),
 	translation_(translate), cursor_(Gdk::Cursor::create(Gdk::HAND1))
 {
 	set_has_window(false);
+	set_can_focus(true);
 	//set_redraw_on_allocate(false);
 
 	xdisplay_ = gdk_x11_get_default_xdisplay();
@@ -579,6 +553,14 @@ void Glx::on_realize()
 
 	if (!window_) {
 		GdkWindowAttr attr;
+		Gdk::EventMask eventMask = get_events() 
+			| Gdk::EXPOSURE_MASK
+			| Gdk::POINTER_MOTION_MASK
+			| Gdk::BUTTON_MOTION_MASK
+			| Gdk::BUTTON_PRESS_MASK
+			| Gdk::BUTTON_RELEASE_MASK
+			| Gdk::LEAVE_NOTIFY_MASK
+			| Gdk::KEY_PRESS_MASK;
 
 		Gtk::Allocation allocation = get_allocation();
 
@@ -587,17 +569,13 @@ void Glx::on_realize()
 		attr.width = allocation.get_width();
 		attr.height = allocation.get_height();
 
-		attr.event_mask = get_events()
-			| Gdk::EXPOSURE_MASK
-			| Gdk::POINTER_MOTION_MASK
-			| Gdk::BUTTON_MOTION_MASK
-			| Gdk::BUTTON_PRESS_MASK
-			| Gdk::BUTTON_RELEASE_MASK
-			| Gdk::LEAVE_NOTIFY_MASK;
+		attr.event_mask = eventMask;
 		attr.window_type = GDK_WINDOW_CHILD;
 		attr.wclass = GDK_INPUT_OUTPUT;
 
 		window_ = Gdk::Window::create(get_parent_window(), &attr, GDK_WA_X | GDK_WA_Y);
+
+		//set_events(eventMask);
 
 		set_window(window_);
 		set_has_window(true);
@@ -674,10 +652,19 @@ bool Glx::on_event(GdkEvent *event)
 		}
 		break;
 
+		case GDK_KEY_PRESS:
+		{
+			GdkEventKey *ev = reinterpret_cast<GdkEventKey*>(event);
+			rv = sswindow_.keyPress(ev->keyval);
+		}
+		break;
+
 		default:
-			//rv = false;
-			rv = Gtk::Widget::on_event(event);
+			rv = false;
 	}
+
+	if (!rv)		
+		rv = Gtk::Widget::on_event(event);
 
 	return rv;
 }
@@ -750,10 +737,12 @@ void GetGraphicsWindowSize(int *w, int *h)
 
 void CheckMenuById(int id, bool checked)
 {
+	printf("%s: STUB\n", __func__);
 }
 
 void EnableMenuById(int id, bool checked)
 {
+	printf("%s: STUB\n", __func__);
 }
 
 void DoMessageBox(const char *str, int rows, int cols, bool error)
@@ -895,10 +884,12 @@ void MoveTextScrollbarTo(int pos, int maxPos, int page)
 
 void SetTimerFor(int milliseconds)
 {
+	printf("%s: STUB\n", __func__);
 }
 
 void OpenWebsite(const char *url)
 {
+	printf("%s: STUB\n", __func__);
 }
 
 void SetWindowTitle(const char *str)
@@ -908,6 +899,7 @@ void SetWindowTitle(const char *str)
 
 void RefreshRecentMenus(void)
 {
+	printf("%s: STUB\n", __func__);
 }
 
 int SaveFileYesNoCancel(void)
@@ -924,8 +916,10 @@ int SaveFileYesNoCancel(void)
 
 void LoadAllFontFiles(void)
 {
+	printf("%s: STUB\n", __func__);
 }
 
 void ExitNow(void)
 {
+	printf("%s: STUB\n", __func__);
 }

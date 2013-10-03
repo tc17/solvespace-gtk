@@ -326,6 +326,12 @@ class GraphicsWindow {
 public:
     void Init(void);
 
+    enum {
+    	S = 0x100,
+	C = 0x200
+    };
+    static int F(int k) { return 0xf0 + k; } 
+
     // This table describes the top-level menus in the graphics winodw.
     typedef enum {
         // File
