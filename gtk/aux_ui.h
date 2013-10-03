@@ -1,7 +1,8 @@
 #ifndef AUX_UI_H
-#define AUX_UI_H
+#define AUX_UI_H 1
 
 #include <string>
+#include <gtkmm.h>
 
 class Label {
 	std::string _label;
@@ -41,5 +42,9 @@ private:
 		}
 	}
 };
+
+namespace FileDialog {
+	void addFilters(Gtk::FileChooser *fileChooser, const char *patterns);
+}
 
 #endif /* AUX_UI_H */

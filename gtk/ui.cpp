@@ -818,42 +818,13 @@ void ShowTextWindow(bool visible)
 	visible ? window.show() : window.hide();
 }
 
-static const char *get_next_token(const char *str) 
-{
-	const char *rv;
-	for (rv = str; *rv; rv++)
-		;
-	return rv+1;
-}
-
-static void addFilters(Gtk::FileChooser *fileChooser, const char *patterns)
-{
-	assert(fileChooser);
-	assert(patterns);
-
-	const char *token = patterns;
-	while (*token) {
-		Glib::RefPtr<Gtk::FileFilter> filter = Gtk::FileFilter::create();
-		filter->set_name(token);
-		
-		token = get_next_token(token);
-		assert(token);
-
-		filter->add_pattern(token);
-
-		fileChooser->add_filter(filter);
-
-		token = get_next_token(token);
-	}	
-}
-
 static bool fileDialog(std::string *file, const char *pattern, const Gtk::StockID& id)
 {
 	Gtk::FileChooserDialog fileChooser(GlxGraphicsWindow::getInstance(), "");
 	fileChooser.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
 	fileChooser.add_button(id, Gtk::RESPONSE_OK);
 
-	addFilters(&fileChooser, pattern);
+	FileDialog::addFilters(&fileChooser, pattern);
 
 	int rv = fileChooser.run();
 	*file = fileChooser.get_filename();
