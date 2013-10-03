@@ -1,3 +1,4 @@
+#include <sys/time.h>
 #include "solvespace.h"
 #include <set>
 #include <map>
@@ -86,6 +87,9 @@ std::string GetAbsoluteFilename(const std::string& path)
 
 SDWORD GetMilliseconds(void)
 {
-	printf("%s: STUB\n", __func__);
+	struct timeval tv;
+	if (gettimeofday(&tv, NULL))
+		oops();
+	return tv.tv_sec * 1000 + tv.tv_usec;
 }
 
