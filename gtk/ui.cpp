@@ -4,6 +4,7 @@
 #include "ui.h"
 #include "aux_ui.h"
 #include "popup_menu_ui.h"
+#include "fcutil.h"
 
 std::string RecentFile[MAX_RECENT];
 
@@ -703,11 +704,14 @@ int SaveFileYesNoCancel(void)
 
 void LoadAllFontFiles(void)
 {
-	printf("%s: STUB\n", __func__);
-
-	TtfFont tf = TtfFont();
-	tf.fontFile = NihString::newNihString("/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf");
-	SS.fonts.l.Add(&tf);
+	FcUtil &fcutil = FcUtil::getInstance();
+	const std::list<std::string>& fontlist = fcutil.fonts();
+	
+	for (std::list<std::string>::const_iterator iter = fontlist.begin(); iter != fontlist.end(); ++iter) {
+		TtfFont tf = TtfFont();
+		tf.fontFile = NihString::newNihString(*iter);
+		SS.fonts.l.Add(&tf);
+	}
 }
 
 void ExitNow(void)
