@@ -17,6 +17,7 @@
 
 class Conf {
 	bool file_exist_;
+	std::string filename_;
 	Glib::KeyFile file_;
 	const char *group_;
 public:
@@ -75,19 +76,20 @@ public:
 	}
 	
 private:
-	Conf() : file_exist_(false), file_(), group_("solvespace")
+	Conf() : file_exist_(false), filename_(), file_(), group_("solvespace")
 	{
 		const std::string path = Glib::get_user_config_dir() + "/solvespace/";
-		const std::string filename = "config";
+		filename_ = path + "config";
 		std::string error;
 		
 		try {
-			file_exist_ = file_.load_from_file(path + filename, Glib::KEY_FILE_KEEP_COMMENTS);
+			file_exist_ = file_.load_from_file(filename_, Glib::KEY_FILE_KEEP_COMMENTS);
 		}
 		catch (Glib::FileError& e) {
 			try {
-				create_file(path, filename);
-				file_.load_from_file(path + filename, Glib::KEY_FILE_KEEP_COMMENTS);
+				create_dir(path);
+				create_file(filename_);
+				file_.load_from_file(filename_, Glib::KEY_FILE_KEEP_COMMENTS);
 			}
 			catch (Glib::Error& e) {
 				error = e.what();
@@ -103,21 +105,51 @@ private:
 	
 	~Conf()
 	{
+		try {
+			save(filename_, file_.to_data());
+		} catch (Glib::FileError& e) {
+			fprintf(stderr, "%s: %s\n", __func__, e.what().c_str());
+		}
 	}
 
 	inline bool key_exist(const std::string& name)
 	{
 		return file_exist_ && file_.has_group(group_) && file_.has_key(group_, name);
 	}
-
-	inline void create_file(const std::string& path, const std::string& name)
+	
+	//FIXME: rework this
+	inline void create_file(const std::string& path)
 	{
 		int fd;
+		if ((fd = open(path.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR)) == -1)
+			throw (Glib::FileError(Glib::FileError::Code(errno), strerror(errno)));
+		close(fd);
+	}
+
+	inline void create_dir(const std::string& path)
+	{
 		if (mkdir(path.c_str(), S_IRUSR | S_IWUSR | S_IXUSR) && errno != EEXIST)
 			throw (Glib::FileError(Glib::FileError::Code(errno), strerror(errno)));
+	}
 
-		if ((fd = open((path + name).c_str(), O_CREAT, S_IRUSR | S_IWUSR)) == -1)
+	void save(const std::string& path, const std::string& data)
+	{
+		int fd;
+		if ((fd = open(path.c_str(), O_WRONLY | O_TRUNC)) == -1)
 			throw (Glib::FileError(Glib::FileError::Code(errno), strerror(errno)));
+
+		const char *buf = data.c_str();
+		size_t bufsize = data.size();
+		ssize_t written = 0;
+
+		do {
+			ssize_t rv = write(fd, buf + written, bufsize - written);
+			if (rv == -1) {
+				close(fd);
+				throw (Glib::FileError(Glib::FileError::Code(errno), strerror(errno)));
+			}
+			written += rv;
+		} while ((size_t)written < bufsize);
 
 		close(fd);
 	}
