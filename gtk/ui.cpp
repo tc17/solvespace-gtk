@@ -73,6 +73,11 @@ public:
 		return window_.KeyDown(key);
 	}
 
+	virtual void timerCallback()
+	{
+		window_.TimerCallback();
+	}
+
 	virtual ~SSGraphics() {}
 private:
 	SSGraphics(const SSGraphics&);
@@ -120,6 +125,12 @@ public:
 	virtual bool keyPress(int key)
 	{
 		return false;
+	}
+
+	virtual void timerCallback()
+	{
+		printf("%s\n", __func__);
+		window_.TimerCallback();
 	}
 
 	virtual ~SSText() {}
@@ -521,6 +532,11 @@ void Glx::setCursorToHand(bool yes)
 		window->set_cursor();
 }
 
+void Glx::setTimer(int milliseconds)
+{
+	Glib::signal_timeout().connect_once(sigc::mem_fun(sswindow_, &SSWindow::timerCallback), milliseconds);	
+}
+
 void GetTextWindowSize(int *w, int *h)
 {
 	const Glx& widget = GlxTextWindow::getInstance().widget();
@@ -656,6 +672,12 @@ void MoveTextScrollbarTo(int pos, int maxPos, int page)
 void OpenWebsite(const char *url)
 {
 	printf("%s: STUB\n", __func__);
+}
+
+void SetTimerFor(int milliseconds)
+{
+	GlxGraphicsWindow::getInstance().widget().setTimer(milliseconds);
+	GlxTextWindow::getInstance().widget().setTimer(milliseconds);
 }
 
 void SetWindowTitle(const char *str)

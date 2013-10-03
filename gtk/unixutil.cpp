@@ -89,7 +89,3 @@ SDWORD GetMilliseconds(void)
 	printf("%s: STUB\n", __func__);
 }
 
-void SetTimerFor(int milliseconds)
-{
-	printf("%s: STUB\n", __func__);
-}

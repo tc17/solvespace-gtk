@@ -40,6 +40,7 @@ public:
 	virtual void editDone(const char *str) = 0;
 	virtual void scroll(int newPos) = 0;
 	virtual bool keyPress(int key) = 0;
+	virtual void timerCallback() = 0;
 	virtual ~SSWindow() {};
 };
 
@@ -57,6 +58,7 @@ public:
 	Glx(SSWindow &w, bool translation);
 	virtual ~Glx();
 	void setCursorToHand(bool yes);
+	void setTimer(int milliseconds);
 
 protected:
 	virtual void on_realize();
