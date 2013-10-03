@@ -105,6 +105,7 @@ private:
 	
 	~Conf()
 	{
+		printf("save configuration\n");
 		try {
 			save(filename_, file_.to_data());
 		} catch (Glib::FileError& e) {
@@ -158,16 +159,19 @@ private:
 
 void CnfFreezeString(const std::string& str, const char *name)
 { 
+	printf("%s: %s -> %s\n", __func__, name, str.c_str());
 	Conf::getInstance().setString(str, name);
 }
 
 void CnfFreezeDWORD(DWORD v, const char *name)
 {
+	printf("%s: %s -> %d\n", __func__, name, v);
 	Conf::getInstance().setUint64(v, name);
 }
 
 void CnfFreezeFloat(float v, const char *name)
 {
+	printf("%s: %s -> %f\n", __func__, name, v);
 	Conf::getInstance().setDouble(v, name);
 }
 

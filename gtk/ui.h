@@ -107,6 +107,7 @@ private:
 	GlxGraphicsWindow();
 	GlxGraphicsWindow(const GlxGraphicsWindow&);
 	GlxGraphicsWindow& operator=(const GlxGraphicsWindow&);
+	virtual bool on_delete_event(GdkEventAny* event);
 };
 
 class GlxTextWindow : public GlxWindow 

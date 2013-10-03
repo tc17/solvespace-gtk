@@ -148,7 +148,9 @@ GlxWindow::GlxWindow() : sswindow_(), glx_(), floatWindow_(), accelGroup_()
 }	
 
 GlxWindow::~GlxWindow()
-{}
+{
+	floatWindow_.unparent();
+}
 
 void GlxWindow::forall_vfunc(gboolean include_internals, GtkCallback callback, gpointer callback_data)
 {
@@ -276,6 +278,12 @@ GlxGraphicsWindow::GlxGraphicsWindow() : box_(Gtk::ORIENTATION_VERTICAL)
 	show_all();
 }
 
+bool GlxGraphicsWindow::on_delete_event(GdkEventAny* event)
+{
+	SolveSpace::MenuFile(GraphicsWindow::MNU_EXIT);
+	return GlxWindow::on_delete_event(event);
+}
+
 GlxGraphicsWindow::~GlxGraphicsWindow()
 {
 	delete glx_;
@@ -294,7 +302,7 @@ GlxTextWindow::GlxTextWindow() : box_(), adj_(), scroll_()
 	glx_ = new Glx(*sswindow_, false);
 
 //	set_type_hint(Gdk::WINDOW_TYPE_HINT_UTILITY);
-//
+
 	adj_ = Gtk::Adjustment::create(0, 0, 0);
 	adj_->signal_value_changed().connect(sigc::mem_fun(*this, &GlxTextWindow::adjOnValueChanged));
 
@@ -476,6 +484,8 @@ bool Glx::on_event(GdkEvent *event)
 
 	if (!rv)		
 		rv = Gtk::Widget::on_event(event);
+
+	SS.DoLater(); //<--- ???
 
 	return rv;
 }
@@ -717,4 +727,6 @@ void LoadAllFontFiles(void)
 void ExitNow(void)
 {
 	printf("%s: STUB\n", __func__);
+	if (GlxGraphicsWindow::getInstance().get_visible())
+		GlxGraphicsWindow::getInstance().hide();
 }
