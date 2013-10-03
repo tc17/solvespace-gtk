@@ -704,6 +704,10 @@ int SaveFileYesNoCancel(void)
 void LoadAllFontFiles(void)
 {
 	printf("%s: STUB\n", __func__);
+
+	TtfFont tf = TtfFont();
+	tf.fontFile = NihString::newNihString("/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf");
+	SS.fonts.l.Add(&tf);
 }
 
 void ExitNow(void)

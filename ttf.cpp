@@ -224,10 +224,10 @@ void TtfFont::LoadGlyph(int index) {
 // entities that reference us will store it.
 //-----------------------------------------------------------------------------
 std::string TtfFont::FontFileBaseName(void) {
-    size_t s = fontFile.find_last_of("\\/");
+    size_t s = fontFile.std_str().find_last_of("\\/");
     if (s == std::string::npos) return std::string();
 
-    return fontFile.substr(s+1, std::string::npos);
+    return fontFile.std_str().substr(s+1, std::string::npos);
 }
 
 //-----------------------------------------------------------------------------
@@ -509,8 +509,7 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
         for(i = 0; i < segCount; i++) {
             WORD v = idDelta[i];
             if(idRangeOffset[i] == 0) {
-                WORD j;
-                for(j = startChar[i]; j <= endChar[i]; j++) {
+                for(size_t j = startChar[i]; j <= endChar[i]; j++) {
                     if(j > 0 && j < arraylen(useGlyph)) {
                         // Don't create a reference to a glyph that we won't
                         // store because it's bigger than the table.
@@ -521,8 +520,7 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
                     }
                 }
             } else {
-                WORD j;
-                for(j = startChar[i]; j <= endChar[i]; j++) {
+                for(size_t j = startChar[i]; j <= endChar[i]; j++) {
                     if(j > 0 && j < arraylen(useGlyph)) {
                         int fp = filePos[i];
                         fp += (j - startChar[i])*sizeof(WORD);

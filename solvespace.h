@@ -382,7 +382,7 @@ public:
         int x, y;
     } IntPoint;
 
-    std::string fontFile;
+    NihString fontFile;
     NameStr name;
     bool    loaded;
 

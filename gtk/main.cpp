@@ -39,7 +39,6 @@ int main(int argc, char *argv[])
 	while (Gtk::Main::iteration()) {
 		SS.DoLater();
 	}
-	
 
 	return 0;
 }
