@@ -1,4 +1,5 @@
 #include <cassert>
+#include "solvespace.h"
 #include "aux_ui.h"
 
 namespace FileDialog {
@@ -31,4 +32,21 @@ namespace FileDialog {
 		}	
 	}
 
+}
+
+namespace Accel {
+	guint key(int accelerator)
+	{
+		return accelerator & ~(GraphicsWindow::C | GraphicsWindow::S);	
+	}
+	
+	Gdk::ModifierType mods(int accelerator)
+	{
+		Gdk::ModifierType rv;
+		if (accelerator & GraphicsWindow::C)
+			rv |= Gdk::CONTROL_MASK;
+		if (accelerator & GraphicsWindow::S)
+			rv |= Gdk::SHIFT_MASK;
+		return rv;
+	}
 }

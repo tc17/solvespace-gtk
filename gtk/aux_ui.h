@@ -47,4 +47,9 @@ namespace FileDialog {
 	void addFilters(Gtk::FileChooser *fileChooser, const char *patterns);
 }
 
+namespace Accel {
+	guint key(int accelerator);
+	Gdk::ModifierType mods(int accelerator);
+}
+
 #endif /* AUX_UI_H */

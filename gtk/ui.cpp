@@ -9,23 +9,23 @@ std::string RecentFile[MAX_RECENT];
 
 class SSGraphics : public SSWindow
 {
-	GraphicsWindow &_window;
+	GraphicsWindow &window_;
 public:
-	SSGraphics(GraphicsWindow& window) : _window(window) {}
+	SSGraphics(GraphicsWindow& window) : window_(window) {}
 	virtual void paint()
 	{
-		_window.Paint();
+		window_.Paint();
 	}
 
 	virtual void buttonPress(const Mouse& mouse, Button button)
 	{
 		switch (button) {
 			case BUTTON_LEFT:
-				_window.MouseLeftDown(mouse.x, mouse.y);
+				window_.MouseLeftDown(mouse.x, mouse.y);
 				break;
 			case BUTTON_MIDDLE:
 			case BUTTON_RIGHT:
-				_window.MouseMiddleOrRightDown(mouse.x, mouse.y);
+				window_.MouseMiddleOrRightDown(mouse.x, mouse.y);
 				break;
 			default: ;
 		}
@@ -35,10 +35,10 @@ public:
 	{
 		switch (button) {
 			case BUTTON_LEFT:
-				_window.MouseLeftUp(mouse.x, mouse.y);
+				window_.MouseLeftUp(mouse.x, mouse.y);
 				break;
 			case BUTTON_RIGHT:
-				_window.MouseRightUp(mouse.x, mouse.y);
+				window_.MouseRightUp(mouse.x, mouse.y);
 				break;
 			default: ;
 		}
@@ -47,30 +47,30 @@ public:
 	virtual void button2Press(const Mouse& mouse, Button button)
 	{
 		if (button == BUTTON_LEFT)
-			_window.MouseLeftDoubleClick(mouse.x, mouse.y);
+			window_.MouseLeftDoubleClick(mouse.x, mouse.y);
 	}
 
 	virtual void mouseMoved(const Mouse& mouse, const ButtonsState& buttons, const ModState& mods)
 	{
-		_window.MouseMoved(mouse.x, mouse.y, buttons.left,
+		window_.MouseMoved(mouse.x, mouse.y, buttons.left,
 				buttons.middle, buttons.right, mods.shift, mods.control);	
 	}
 	
 	virtual void mouseLeave()
 	{
-		_window.MouseLeave();
+		window_.MouseLeave();
 	}
 
 	virtual void editDone(const char *str)
 	{
-		_window.EditControlDone(str);
+		window_.EditControlDone(str);
 	}
 
 	virtual void scroll(int newPos) {}
 
 	virtual bool keyPress(int key)
 	{
-		return _window.KeyDown(key);
+		return window_.KeyDown(key);
 	}
 
 	virtual ~SSGraphics() {}
@@ -81,40 +81,40 @@ private:
 
 class SSText : public SSWindow
 {
-	TextWindow &_window;
+	TextWindow &window_;
 public:
-	SSText(TextWindow& window) : _window(window) {}
+	SSText(TextWindow& window) : window_(window) {}
 	virtual void paint()
 	{
-		_window.Paint();
+		window_.Paint();
 	}
 
 	virtual void buttonPress(const Mouse& mouse, Button button)
 	{
 		if (button == BUTTON_LEFT)
-			_window.MouseEvent(true, false, mouse.x, mouse.y);
+			window_.MouseEvent(true, false, mouse.x, mouse.y);
 	}
 	
 	virtual void buttonRelease(const Mouse& mouse, Button button) {}
 	virtual void button2Press(const Mouse& mouse, Button button) {}
 	virtual void mouseMoved(const Mouse& mouse, const ButtonsState& buttons, const ModState& mods)
 	{
-		_window.MouseEvent(false, buttons.left, mouse.x, mouse.y);
+		window_.MouseEvent(false, buttons.left, mouse.x, mouse.y);
 	}
 
 	virtual void mouseLeave()
 	{
-		_window.MouseLeave();
+		window_.MouseLeave();
 	}
 
 	virtual void editDone(const char *str)
 	{
-		_window.EditControlDone(str);
+		window_.EditControlDone(str);
 	}
 
 	virtual void scroll(int newPos)
 	{
-		_window.ScrollbarEvent(newPos);
+		window_.ScrollbarEvent(newPos);
 	}
 
 	virtual bool keyPress(int key)
@@ -214,6 +214,9 @@ GlxGraphicsWindow::GlxGraphicsWindow() : box_(Gtk::ORIENTATION_VERTICAL)
 		const GraphicsWindow::MenuEntry *entry = &SS.GW.menu[i];
 		if (entry->label) {
 			Label label(entry->label);
+			Gtk::AccelKey accel = entry->accel ? Gtk::AccelKey(Accel::key(entry->accel), Accel::mods(entry->accel)) :
+				Gtk::AccelKey("");
+#if 0
 			if (entry->id)
 				actionGroup->add(Gtk::Action::create(entry->label, label.label()),
 						Gtk::AccelKey(label.accelerator()),
@@ -222,6 +225,13 @@ GlxGraphicsWindow::GlxGraphicsWindow() : box_(Gtk::ORIENTATION_VERTICAL)
 			else 
 				actionGroup->add(Gtk::Action::create(entry->label, label.label()),
 					Gtk::AccelKey(label.accelerator()));
+#endif
+			if (entry->id)
+				actionGroup->add(Gtk::Action::create(entry->label, label.label()),
+						accel, sigc::bind<int>(sigc::ptr_fun(entry->fn), entry->id));
+			else 
+				actionGroup->add(Gtk::Action::create(entry->label, label.label()));
+
 			if (entry->level == 0) {
 				subpath = path + SS.GW.menu[i].label;
 				subpath += "/"; 
@@ -641,11 +651,6 @@ void SetMousePointerToHand(bool yes)
 void MoveTextScrollbarTo(int pos, int maxPos, int page)
 {
 	GlxTextWindow::getInstance().moveScroll(pos, maxPos, page);
-}
-
-void SetTimerFor(int milliseconds)
-{
-	printf("%s: STUB\n", __func__);
 }
 
 void OpenWebsite(const char *url)
