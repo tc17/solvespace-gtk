@@ -65,7 +65,7 @@ void FloatWindow::on_map()
 	Gtk::Allocation allocation;
 	allocation.set_x(x_);
 	allocation.set_y(y_);
-	allocation.set_width(100);
+	allocation.set_width(200);
 	allocation.set_height(30);
 	size_allocate(allocation);
 

@@ -124,6 +124,7 @@ private:
 	GlxTextWindow(const GlxTextWindow&);
 	GlxTextWindow& operator=(const GlxTextWindow&);
 	void adjOnValueChanged();
+	virtual bool on_delete_event(GdkEventAny* event);
 };
 
 #endif /* GTK_UI_H */

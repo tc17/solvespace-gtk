@@ -83,7 +83,7 @@ bool StringEndsIn(const std::string& str, const char *ending)
 
     if(ls < le) return false;
 
-    return str.compare(ls - le, le, ending);
+    return !str.compare(ls - le, le, ending);
 }
 
 void MakeMatrix(double *mat, double a11, double a12, double a13, double a14,

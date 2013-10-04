@@ -301,7 +301,10 @@ GlxTextWindow::GlxTextWindow() : box_(), adj_(), scroll_()
 	sswindow_ = new SSText(SS.TW);
 	glx_ = new Glx(*sswindow_, false);
 
-//	set_type_hint(Gdk::WINDOW_TYPE_HINT_UTILITY);
+	//set_type_hint(Gdk::WINDOW_TYPE_HINT_UTILITY);
+	//set_resizable();
+	//set_has_resize_grip();
+	set_deletable(false);
 
 	adj_ = Gtk::Adjustment::create(0, 0, 0);
 	adj_->signal_value_changed().connect(sigc::mem_fun(*this, &GlxTextWindow::adjOnValueChanged));
@@ -331,6 +334,11 @@ void GlxTextWindow::moveScroll(int pos, int maxPos, int page)
 void GlxTextWindow::adjOnValueChanged()
 {
 	sswindow_->scroll(adj_->get_value());	
+}
+
+bool GlxTextWindow::on_delete_event(GdkEventAny* event)
+{
+	return true;
 }
 
 Glx::Glx(SSWindow& w, bool translate) : xdisplay_(), xvinfo_(),
@@ -375,6 +383,7 @@ void Glx::on_realize()
 		Gdk::EventMask eventMask = get_events() 
 			| Gdk::EXPOSURE_MASK
 			| Gdk::POINTER_MOTION_MASK
+			| Gdk::POINTER_MOTION_HINT_MASK
 			| Gdk::BUTTON_MOTION_MASK
 			| Gdk::BUTTON_PRESS_MASK
 			| Gdk::BUTTON_RELEASE_MASK
@@ -726,7 +735,5 @@ void LoadAllFontFiles(void)
 
 void ExitNow(void)
 {
-	printf("%s: STUB\n", __func__);
-	if (GlxGraphicsWindow::getInstance().get_visible())
-		GlxGraphicsWindow::getInstance().hide();
+	GlxGraphicsWindow::getInstance().hide();
 }
