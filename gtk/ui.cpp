@@ -6,6 +6,13 @@
 #include "popup_menu_ui.h"
 #include "fcutil.h"
 
+enum {
+	GRAPHICS_WINDOW_INITIAL_WIDTH = 900,
+	GRAPHICS_WINDOW_INITIAL_HEIGHT = 600,
+	TEXT_WINDOW_INITIAL_WIDTH = 420,
+	TEXT_WINDOW_INITIAL_HEIGHT = 300
+};
+
 std::string RecentFile[MAX_RECENT];
 
 class SSGraphics : public SSWindow
@@ -210,6 +217,8 @@ GlxGraphicsWindow::GlxGraphicsWindow() : box_(Gtk::ORIENTATION_VERTICAL)
 {
 	sswindow_ = new SSGraphics(SS.GW);
 	glx_ = new Glx(*sswindow_, true);
+
+	set_default_size(GRAPHICS_WINDOW_INITIAL_WIDTH, GRAPHICS_WINDOW_INITIAL_HEIGHT);
 	
 	add(box_);
 	box_.pack_end(*glx_);
@@ -300,6 +309,8 @@ GlxTextWindow::GlxTextWindow() : box_(), adj_(), scroll_()
 {
 	sswindow_ = new SSText(SS.TW);
 	glx_ = new Glx(*sswindow_, false);
+
+	set_default_size(TEXT_WINDOW_INITIAL_WIDTH, TEXT_WINDOW_INITIAL_HEIGHT);
 
 	//set_type_hint(Gdk::WINDOW_TYPE_HINT_UTILITY);
 	//set_resizable();
