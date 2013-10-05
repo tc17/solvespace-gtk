@@ -42,7 +42,7 @@ namespace Accel {
 	
 	Gdk::ModifierType mods(int accelerator)
 	{
-		Gdk::ModifierType rv;
+		Gdk::ModifierType rv = Gdk::ModifierType(0);
 		if (accelerator & GraphicsWindow::C)
 			rv |= Gdk::CONTROL_MASK;
 		if (accelerator & GraphicsWindow::S)
