@@ -401,10 +401,11 @@ void TextWindow::ScreenBackgroundImage(int link, DWORD v) {
 
         png_read_png(png_ptr, info_ptr,
             PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_STRIP_ALPHA, NULL);
-        
-        w = info_ptr->width;
-        h = info_ptr->height;
-        rows = png_get_rows(png_ptr, info_ptr);
+ 
+	w = png_get_image_width(png_ptr, info_ptr);
+	h = png_get_image_height(png_ptr, info_ptr);
+ 
+	rows = png_get_rows(png_ptr, info_ptr);
 
         // Round to next-highest powers of two, since the textures require
         // that. And round up to 4, to guarantee DWORD alignment.

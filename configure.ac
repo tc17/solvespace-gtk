@@ -22,7 +22,30 @@ AS_IF([test "x$no_gl" == "xyes"], [AC_MSG_ERROR([OpenGL is missing.])])
 AX_CHECK_GLU
 AS_IF([test "x$no_glu" == "xyes"], [AC_MSG_ERROR([GLU is missing.])])
 
-PKG_CHECK_MODULES([PNG], [libpng12])
+AC_ARG_WITH([libpng12], AS_HELP_STRING([--without-libpng12], [Ignore presence of libpng12]))
+AC_ARG_WITH([libpng15], AS_HELP_STRING([--without-libpng15], [Ignore presence of libpng15]))
+
+AS_IF([test "x$with_libpng12" != "xno"],
+      [PKG_CHECK_MODULES([PNG], [libpng12], [have_libpng12=yes], [have_libpng12=no])])
+
+AS_IF([test "x$with_libpng15" != "xno"],
+      [AS_IF([test "x$have_libpng12" != "xyes"],
+	     [PKG_CHECK_MODULES([PNG], [libpng15], [have_libpng15=yes], [have_libpng15=no])])])
+
+AS_IF([test "x$have_libpng12" = "xyes"],
+      [AC_DEFINE([HAVE_LIBPNG12], [1], [Use libpng12])],
+      [AS_IF([test "x$with_libpng12" = "xyes"],
+	     [AC_MSG_ERROR([libpng12 requested but not found])])])
+
+AS_IF([test "x$have_libpng15" = "xyes"],
+      [AC_DEFINE([HAVE_LIBPNG15], [1], [Use libpng15])],
+      [AS_IF([test "x$with_libpng15" = "xyes"],
+	     [AC_MSG_ERROR([libpng15 requested but not found])])])
+
+AS_IF([test "x$have_libpng12" = "xyes"],
+      [], [AS_IF([test "x$have_libpng15" = "xyes"], [],
+		 [AC_MSG_ERROR([libpng12/libpng15 is missing])])])
+
 #PKG_CHECK_MODULES([GTKMM], [gtkmm-3.0],
 #		  [AC_DEFINE([HAVE_GTKMM], [1], [have gtkmm])
 #		   AM_CONDITIONAL([HAVE_GTKMM], [true]) ],
