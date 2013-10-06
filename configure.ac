@@ -22,7 +22,7 @@ AS_IF([test "x$no_gl" == "xyes"], [AC_MSG_ERROR([OpenGL is missing.])])
 AX_CHECK_GLU
 AS_IF([test "x$no_glu" == "xyes"], [AC_MSG_ERROR([GLU is missing.])])
 
-PKG_CHECK_MODULES([PNG], [libpng])
+PKG_CHECK_MODULES([PNG], [libpng12])
 #PKG_CHECK_MODULES([GTKMM], [gtkmm-3.0],
 #		  [AC_DEFINE([HAVE_GTKMM], [1], [have gtkmm])
 #		   AM_CONDITIONAL([HAVE_GTKMM], [true]) ],
