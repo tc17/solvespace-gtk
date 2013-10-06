@@ -150,20 +150,11 @@ private:
 GlxWindow::GlxWindow() : sswindow_(), glx_(), floatWindow_(), accelGroup_()
 {
 	set_redraw_on_allocate(false);
-	floatWindow_.set_parent(*this);
 	floatWindow_.signal_entry_activate().connect(sigc::mem_fun(*this, &GlxWindow::entryOnActivate));
 }	
 
 GlxWindow::~GlxWindow()
-{
-	floatWindow_.unparent();
-}
-
-void GlxWindow::forall_vfunc(gboolean include_internals, GtkCallback callback, gpointer callback_data)
-{
-	Gtk::Window::forall_vfunc(include_internals, callback, callback_data);
-	callback(static_cast<Gtk::Widget*>(&floatWindow_)->gobj(), callback_data);
-}
+{}
 
 Glx& GlxWindow::widget()
 {
@@ -173,15 +164,22 @@ Glx& GlxWindow::widget()
 
 void GlxWindow::showEntry(int x, int y, const char *s)
 {
-	int rx, ry, rw, rh;
+	int rx, ry; 
 
-	get_size(rw, rh);
+	assert(glx_);
 
-	rx = rw/2 + x;
-	ry = rh/2 + y;
+	get_position(rx, ry);
 
-	if (accelGroup_)
-		remove_accel_group(accelGroup_);
+	if (glx_->translation()) {
+		int w, h;
+		get_size(w, h);
+		x = x + w/2;
+		y = h/2 - y;
+	}
+
+	rx += x;
+	ry += y;
+
 	floatWindow_.showEntry(rx, ry, s);
 }
 
@@ -200,9 +198,6 @@ bool GlxWindow::entryIsVisible()
 
 void GlxWindow::entryOnActivate(const std::string& str)
 {
-	//floatWindow_.hideEntry();
-	if (accelGroup_)
-		add_accel_group(accelGroup_);
 	if (sswindow_)
 		sswindow_->editDone(str.c_str());
 }
@@ -565,6 +560,11 @@ void Glx::setCursorToHand(bool yes)
 void Glx::setTimer(int milliseconds)
 {
 	Glib::signal_timeout().connect_once(sigc::mem_fun(sswindow_, &SSWindow::timerCallback), milliseconds);	
+}
+
+bool Glx::translation()
+{
+	return translation_;
 }
 
 void GetTextWindowSize(int *w, int *h)

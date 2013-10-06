@@ -59,6 +59,7 @@ public:
 	virtual ~Glx();
 	void setCursorToHand(bool yes);
 	void setTimer(int milliseconds);
+	bool translation();
 
 protected:
 	virtual void on_realize();
@@ -90,7 +91,6 @@ public:
 	bool entryIsVisible();
 protected:
 	GlxWindow();
-	virtual void forall_vfunc(gboolean include_internals, GtkCallback callback, gpointer callback_data);
 private:
 	GlxWindow(const GlxWindow&);
 	GlxWindow& operator=(const GlxWindow&);
