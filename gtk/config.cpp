@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <string.h>
 #include <errno.h>
+#include <unistd.h>
 #include <string>
 #include <glibmm/fileutils.h>
 #include <glibmm/keyfile.h>
