@@ -24,6 +24,8 @@ AS_IF([test "x$no_glu" == "xyes"], [AC_MSG_ERROR([GLU is missing.])])
 
 PKG_CHECK_MODULES([PNG], [libpng >= 1.2])
 
+PKG_CHECK_MODULES([FONTCONFIG], [fontconfig])
+
 #PKG_CHECK_MODULES([GTKMM], [gtkmm-3.0],
 #		  [AC_DEFINE([HAVE_GTKMM], [1], [have gtkmm])
 #		   AM_CONDITIONAL([HAVE_GTKMM], [true]) ],

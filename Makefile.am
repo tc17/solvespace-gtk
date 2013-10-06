@@ -19,8 +19,8 @@ solvespace_SOURCES += nihstring.h nihstring.cpp
 
 nodist_solvespace_SOURCES = icons.h icons-proto.h
 
-AM_CXXFLAGS += $(GL_CFLAGS) $(GLU_CFLAGS) $(PNG_CFLAGS) $(GTKMM_CFLAGS)
-solvespace_LDADD = $(GL_LIBS) $(GLU_LIBS) $(PNG_LIBS) $(GTKMM_LIBS)
+AM_CXXFLAGS += $(GL_CFLAGS) $(GLU_CFLAGS) $(PNG_CFLAGS) $(FONTCONFIG_CFLAGS) $(GTKMM_CFLAGS)
+solvespace_LDADD = $(GL_LIBS) $(GLU_LIBS) $(PNG_LIBS) $(FONTCONFIG_LIBS) $(GTKMM_LIBS)
 
 #if HAVE_GTKMM
 solvespace_SOURCES += gtk/unixutil.cpp gtk/config.cpp gtk/ui.cpp gtk/ui.h gtk/aux_ui.cpp gtk/aux_ui.h \
