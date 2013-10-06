@@ -5,7 +5,6 @@
 
 int main(int argc, char *argv[])
 {
-#if 1
 	Glib::RefPtr<Gtk::Application> app =
 		Gtk::Application::create(argc, argv, "org.solvespace");
 
@@ -14,32 +13,10 @@ int main(int argc, char *argv[])
 	GlxGraphicsWindow& graphicsWindow = GlxGraphicsWindow::getInstance();
 	GlxTextWindow& textWindow = GlxTextWindow::getInstance();
 
-	app->add_window(graphicsWindow);
-//	app->add_window(textWindow);
-
 	graphicsWindow.show_all();
 	textWindow.show_all();
 
 	SS.Init(NULL);
 
-	return app->run();
-#else
-
-	setlocale(LC_NUMERIC, "C");
-	Gtk::Main solvespace(argc, argv, false);
-
-	GlxGraphicsWindow& graphicsWindow = GlxGraphicsWindow::getInstance();
-	GlxTextWindow& textWindow = GlxTextWindow::getInstance();
-
-	graphicsWindow.show_all();
-	textWindow.show_all();
-
-	SS.Init(NULL);
-
-	while (Gtk::Main::iteration()) {
-		SS.DoLater();
-	}
-
-	return 0;
-#endif
+	return app->run(graphicsWindow);
 }
