@@ -8,6 +8,7 @@
 #define __DSC_H
 
 #include "inttypes.h"
+#include "compat.h"
 
 class Vector;
 class Vector4;
@@ -373,7 +374,7 @@ public:
     char str[64];
 
     inline void strcpy(const char *in) {
-        memcpy(str, in, std::min(strlen(in)+1, sizeof(str)));
+        memcpy(str, in, min(strlen(in)+1, sizeof(str)));
         str[sizeof(str)-1] = '\0';
     }
 };

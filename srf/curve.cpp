@@ -776,6 +776,7 @@ SSurface *SCurve::GetSurfaceA(SShell *a, SShell *b) {
     } else if(source == FROM_INTERSECTION) {
         return a->surface.FindById(surfA);
     } else oops();
+    return NULL; /* compiler warning */
 }
 
 SSurface *SCurve::GetSurfaceB(SShell *a, SShell *b) {
@@ -786,6 +787,7 @@ SSurface *SCurve::GetSurfaceB(SShell *a, SShell *b) {
     } else if(source == FROM_INTERSECTION) {
         return b->surface.FindById(surfB);
     } else oops();
+    return NULL; /* compiler warning */
 }
 
 //-----------------------------------------------------------------------------

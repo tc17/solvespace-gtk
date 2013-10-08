@@ -116,7 +116,7 @@ struct NihString {
 
 	bool empty()
 	{
-		return NihCache::getInstance().size(entry_);
+		return NihCache::getInstance().size(entry_) == 0;
 	}
 };
 

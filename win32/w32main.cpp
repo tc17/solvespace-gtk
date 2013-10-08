@@ -42,7 +42,7 @@ struct {
     int x, y;
 } LastMousePos;
 
-char RecentFile[MAX_RECENT][MAX_PATH];
+std::string RecentFile[MAX_RECENT];
 HMENU SubMenus[100];
 HMENU RecentOpenMenu, RecentImportMenu;
 
@@ -63,7 +63,7 @@ SiHdl SpaceNavigator = SI_NO_HANDLE;
 
 HWND MessageWnd, OkButton;
 BOOL MessageDone;
-char *MessageString;
+const char *MessageString;
 
 static LRESULT CALLBACK MessageProc(HWND hwnd, UINT msg, WPARAM wParam,
     LPARAM lParam)
@@ -582,7 +582,7 @@ static BOOL ProcessKeyDown(WPARAM wParam)
     return FALSE;
 }
 
-void ShowTextWindow(BOOL visible)
+void ShowTextWindow(bool visible)
 {
     ShowWindow(TextWnd, visible ? SW_SHOWNOACTIVATE : SW_HIDE);
 }
@@ -665,9 +665,9 @@ void HideTextEditControl(void)
 {
     ShowWindow(TextEditControl, SW_HIDE);
 }
-BOOL TextEditControlIsVisible(void)
+bool TextEditControlIsVisible(void)
 {
-    return IsWindowVisible(TextEditControl);
+    return !!IsWindowVisible(TextEditControl);
 }
 void ShowGraphicsEditControl(int x, int y, char *s)
 {
@@ -688,9 +688,10 @@ void HideGraphicsEditControl(void)
 {
     ShowWindow(GraphicsEditControl, SW_HIDE);
 }
-BOOL GraphicsEditControlIsVisible(void)
+
+bool GraphicsEditControlIsVisible(void)
 {
-    return IsWindowVisible(GraphicsEditControl);
+    return !!IsWindowVisible(GraphicsEditControl);
 }
 
 LRESULT CALLBACK GraphicsWndProc(HWND hwnd, UINT msg, WPARAM wParam,
@@ -812,7 +813,8 @@ LRESULT CALLBACK GraphicsWndProc(HWND hwnd, UINT msg, WPARAM wParam,
 bool GetOpenFile(std::string *file, const char *defExtension, const char *selPattern)
 {
     OPENFILENAME ofn;
-    cfile[MAX_PATH];
+    char cfile[MAX_PATH];
+    cfile[0] = '\0';
 
     memset(&ofn, 0, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
@@ -836,10 +838,12 @@ bool GetOpenFile(std::string *file, const char *defExtension, const char *selPat
 
     return r;
 }
+
 bool GetSaveFile(std::string *file, const char *defExtension, const char *selPattern)
 {
     OPENFILENAME ofn;
-    cfile[MAX_PATH];
+    char cfile[MAX_PATH];
+    cfile[0] = '\0';
 
     memset(&ofn, 0, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
@@ -863,6 +867,7 @@ bool GetSaveFile(std::string *file, const char *defExtension, const char *selPat
 
     return r;
 }
+
 int SaveFileYesNoCancel(void)
 {
     EnableWindow(GraphicsWnd, FALSE);
@@ -877,7 +882,7 @@ int SaveFileYesNoCancel(void)
     EnableWindow(GraphicsWnd, TRUE);
     SetForegroundWindow(GraphicsWnd);
 
-    return r;
+    return ((r == IDYES) ? SAVE_YES : (r == IDNO) ? SAVE_NO : SAVE_CANCEL);
 }
 
 void LoadAllFontFiles(void)
@@ -898,7 +903,7 @@ void LoadAllFontFiles(void)
         strcat(fullPath, "\\fonts\\");
         strcat(fullPath, wfd.cFileName);
 
-        strcpy(tf.fontFile, fullPath);
+	tf.fontFile = NihString::newNihString(fullPath);
         SS.fonts.l.Add(&tf);
 
         if(!FindNextFile(h, &wfd)) break;
@@ -929,11 +934,11 @@ static void MenuById(int id, BOOL yes, BOOL check)
     }
     oops();
 }
-void CheckMenuById(int id, BOOL checked)
+void CheckMenuById(int id, bool checked)
 {
     MenuById(id, checked, TRUE);
 }
-void EnableMenuById(int id, BOOL enabled)
+void EnableMenuById(int id, bool enabled)
 {
     MenuById(id, enabled, FALSE);
 }
@@ -943,9 +948,8 @@ static void DoRecent(HMENU m, int base)
         ;
     int i, c = 0;
     for(i = 0; i < MAX_RECENT; i++) {
-        char *s = RecentFile[i];
-        if(*s) {
-            AppendMenu(m, MF_STRING, base+i, s);
+        if(!RecentFile[i].empty()) {
+            AppendMenu(m, MF_STRING, base+i, RecentFile[i].c_str());
             c++;
         }
     }

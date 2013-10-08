@@ -11,29 +11,12 @@
  #include "config.h"
 #endif
 
+#include "compat.h"
+
 // Debugging functions
 #define oops() do { dbp("oops at line %d, file %s", __LINE__, __FILE__); \
                     abort(); } while(0)
 
-#if defined(_WIN32) || defined(_WIN64)
-# ifndef min
-#  define min(x, y) ((x) < (y) ? (x) : (y))
-# endif
-# ifndef max
-#  define max(x, y) ((x) > (y) ? (x) : (y))
-# endif
-#elif defined(HAVE_ALGORITHM)
-# include <algorithm>
-using std::min;
-using std::max;
-#else
-# error "<algorithm> is missing."
-#endif
-
-//FIXME
-#if 0
-#define isnan(x) (((x) != (x)) || (x > 1e11) || (x < -1e11))
-#endif
 
 inline int WRAP(int v, int n) {
     // Clamp it to the range [0, n)
@@ -91,6 +74,7 @@ inline double ffabs(double v) { return (v > 0) ? v : (-v); }
 
 #if defined (_WIN32) || defined (_WIN64)
  #include <windows.h> // required for GL stuff
+ #include <gl/GLU.h>
 #endif
 
 inline double Random(double vmax) {
@@ -109,7 +93,7 @@ class ExprQuaternion;
 extern std::string RecentFile[MAX_RECENT];
 void RefreshRecentMenus(void);
 
-enum saveRv {
+enum {
 	SAVE_YES,
 	SAVE_NO,
 	SAVE_CANCEL
@@ -654,7 +638,7 @@ public:
     int     fixExportColors;
     int     drawBackFaces;
     int     checkClosedContour;
-    int     showToolbar;
+    bool    showToolbar;
     DWORD   backgroundColor;
     int     exportShadedTriangles;
     int     exportPwlCurves;

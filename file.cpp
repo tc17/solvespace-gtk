@@ -653,7 +653,6 @@ void SolveSpace::ReloadAllImported(void) {
             // can use the relative filename to get us back.
             if(!SS.saveFile.empty()) {
 		std::string fromRel = MakePathAbsolute(SS.saveFile, g->impFileRel.std_str());
-		printf("%s: fromRel: %s, FileRel: %s\n", __func__, fromRel.c_str(), g->impFileRel.c_str());
                 test = fopen(fromRel.c_str(), "rb");
                 if(test) {
                     fclose(test);

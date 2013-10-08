@@ -81,7 +81,7 @@ void SolveSpace::Init(char *cmdLine) {
     gCode.feed          = CnfThawFloat(10.0f, "GCode_Feed");
     gCode.plungeFeed    = CnfThawFloat(10.0f, "GCode_PlungeFeed");
     // Show toolbar in the graphics window
-    showToolbar = CnfThawDWORD(1, "ShowToolbar");
+    showToolbar = !!CnfThawDWORD(1, "ShowToolbar");
     // Recent files menus
     for(i = 0; i < MAX_RECENT; i++) {
         char name[100];
@@ -354,6 +354,8 @@ bool SolveSpace::OkayToStartNewFile(void) {
         
         default: oops();
     }
+
+    return false; /* compiler warning */
 }
 
 void SolveSpace::UpdateWindowTitle(void) {

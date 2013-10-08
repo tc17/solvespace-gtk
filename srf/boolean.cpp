@@ -228,6 +228,8 @@ static bool KeepRegion(int type, bool opA, int shell, int orig)
 
         default: oops();
     }
+
+    return false; /* compiler warning */
 }
 static bool KeepEdge(int type, bool opA,
                      int indir_shell, int outdir_shell,

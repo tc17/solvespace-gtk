@@ -1,9 +1,9 @@
 DEFINES = /D_WIN32_WINNT=0x500 /DISOLATION_AWARE_ENABLED /D_WIN32_IE=0x500 /DWIN32_LEAN_AND_MEAN /DWIN32
 # Use the multi-threaded static libc because libpng and zlib do; not sure if anything bad
 # happens if those mix, but don't want to risk it.
-CFLAGS  = /W3 /nologo -MT -Iextlib /D_DEBUG /D_CRT_SECURE_NO_WARNINGS /I. /Zi /EHs  # /O2
+CFLAGS  = /W3 /nologo -MT -Iextlib /D_DEBUG /D_CRT_SECURE_NO_WARNINGS /D_ITERATOR_DEBUG_LEVEL=0 /I. /Zi /EHs /Od # /O2
 
-HEADERS = win32\freeze.h ui.h solvespace.h dsc.h sketch.h expr.h polygon.h srf\surface.h
+HEADERS = win32/freeze.h ui.h solvespace.h dsc.h sketch.h expr.h polygon.h srf/surface.h nihstring.h
 
 OBJDIR = obj
 
@@ -46,6 +46,8 @@ SSOBJS   = $(OBJDIR)\solvespace.obj \
            $(OBJDIR)\export.obj \
            $(OBJDIR)\exportvector.obj \
            $(OBJDIR)\exportstep.obj \
+	   $(OBJDIR)\nihstring.obj \
+
 
 SRFOBJS =  $(OBJDIR)\ratpoly.obj \
            $(OBJDIR)\curve.obj \
@@ -60,14 +62,15 @@ SRFOBJS =  $(OBJDIR)\ratpoly.obj \
 RES = $(OBJDIR)\resource.res
 
 
-LIBS = user32.lib gdi32.lib comctl32.lib advapi32.lib shell32.lib opengl32.lib glu32.lib \
-       extlib\libpng.lib extlib\zlib.lib extlib\si\siapp.lib
+LIBS = user32.lib gdi32.lib comctl32.lib advapi32.lib \
+       shell32.lib opengl32.lib glu32.lib \
+       extlib/libpng.lib extlib/zlib.lib extlib/si/siapp.lib
 
 all: $(OBJDIR)/solvespace.exe
     @cp $(OBJDIR)/solvespace.exe .
 
 clean:
-	rm -f obj/*
+	rm -f icons.h icons-proto.h obj/*
 
 $(OBJDIR)/solvespace.exe: $(SRFOBJS) $(SSOBJS) $(W32OBJS) $(FREEZE) $(RES)
     @$(CC) $(DEFINES) $(CFLAGS) -Fe$(OBJDIR)/solvespace.exe $(SSOBJS) $(SRFOBJS) $(W32OBJS) $(FREEZE) $(RES) $(LIBS)
@@ -77,8 +80,8 @@ $(OBJDIR)/solvespace.exe: $(SRFOBJS) $(SSOBJS) $(W32OBJS) $(FREEZE) $(RES)
 $(SSOBJS): $(@B).cpp $(HEADERS)
     @$(CC) $(CFLAGS) $(DEFINES) -c -Fo$(OBJDIR)/$(@B).obj $(@B).cpp
 
-$(SRFOBJS): srf\$(@B).cpp $(HEADERS)
-    @$(CC) $(CFLAGS) $(DEFINES) -c -Fo$(OBJDIR)/$(@B).obj srf\$(@B).cpp
+$(SRFOBJS): srf/$(@B).cpp $(HEADERS)
+    @$(CC) $(CFLAGS) $(DEFINES) -c -Fo$(OBJDIR)/$(@B).obj srf/$(@B).cpp
 
 $(W32OBJS): win32/$(@B).cpp $(HEADERS)
     @$(CC) $(CFLAGS) $(DEFINES) -c -Fo$(OBJDIR)/$(@B).obj win32/$(@B).cpp
@@ -94,5 +97,5 @@ textwin.cpp: $(OBJDIR)/icons.h
 glhelper.cpp: bitmapfont.table font.table bitmapextra.table
 
 $(OBJDIR)/icons.h: icons/* png2c.pl
-    perl png2c.pl $(OBJDIR)/icons.h $(OBJDIR)/icons-proto.h
+    perl png2c.pl icons icons.h icons-proto.h
 

@@ -433,6 +433,7 @@ double Vector::Element(int i) {
         case 2: return z;
         default: oops();
     }
+    return 0; /* compiler warning */
 }
 
 bool Vector::Equals(Vector v, double tol) {

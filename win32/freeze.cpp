@@ -6,11 +6,12 @@
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string>
 
 /*
  * store a window's position in the registry, or fail silently if the registry calls don't work
  */
-void FreezeWindowPosF(HWND hwnd, char *subKey, char *name)
+void FreezeWindowPosF(HWND hwnd, const char *subKey, const char *name)
 {
     RECT r;
     GetWindowRect(hwnd, &r);
@@ -60,7 +61,7 @@ static void Clamp(LONG *v, LONG min, LONG max)
 /*
  * retrieve a window's position from the registry, or do nothing if there is no info saved
  */
-void ThawWindowPosF(HWND hwnd, char *subKey, char *name)
+void ThawWindowPosF(HWND hwnd, const char *subKey, const char *name)
 {
     HKEY software;
     if(RegOpenKeyEx(HKEY_CURRENT_USER, "Software", 0, KEY_ALL_ACCESS, &software) != ERROR_SUCCESS)
@@ -132,7 +133,7 @@ void ThawWindowPosF(HWND hwnd, char *subKey, char *name)
 /*
  * store a DWORD setting in the registry
  */
-void FreezeDWORDF(DWORD val, char *subKey, char *name)
+void FreezeDWORDF(DWORD val, const char *subKey, const char *name)
 {
     HKEY software;
     if(RegOpenKeyEx(HKEY_CURRENT_USER, "Software", 0, KEY_ALL_ACCESS, &software) != ERROR_SUCCESS)
@@ -149,7 +150,7 @@ void FreezeDWORDF(DWORD val, char *subKey, char *name)
 /*
  * retrieve a DWORD setting, or return the default if that setting is unavailable
  */
-DWORD ThawDWORDF(DWORD val, char *subKey, char *name)
+DWORD ThawDWORDF(DWORD val, const char *subKey, const char *name)
 {
     HKEY software;
     if(RegOpenKeyEx(HKEY_CURRENT_USER, "Software", 0, KEY_ALL_ACCESS, &software) != ERROR_SUCCESS)
@@ -170,7 +171,7 @@ DWORD ThawDWORDF(DWORD val, char *subKey, char *name)
 /*
  * store a string setting in the registry
  */
-void FreezeStringF(char *val, char *subKey, char *name)
+void FreezeStringF(const char *val, const char *subKey, const char *name)
 {
     HKEY software;
     if(RegOpenKeyEx(HKEY_CURRENT_USER, "Software", 0, KEY_ALL_ACCESS, &software) != ERROR_SUCCESS)
@@ -187,28 +188,28 @@ void FreezeStringF(char *val, char *subKey, char *name)
 /*
  * retrieve a string setting, or return the default if that setting is unavailable
  */
-std::string ThawStringF(char *subKey, char *name)
+std::string ThawStringF(const char *subKey, const char *name)
 {
     HKEY software;
     if(RegOpenKeyEx(HKEY_CURRENT_USER, "Software", 0, KEY_ALL_ACCESS, &software) != ERROR_SUCCESS)
-        return std::string();
+        return "";
 
     HKEY sub;
     if(RegOpenKeyEx(software, subKey, 0, KEY_ALL_ACCESS, &sub) != ERROR_SUCCESS)
-        return std::string();
+        return "";
 
     DWORD l;
     if(RegQueryValueEx(sub, name, NULL, NULL, NULL, &l) != ERROR_SUCCESS)
-        return std::string();
+        return "";
     
-    BYTE *val = malloc(l); 
-    if (!val) return std::string();
+    BYTE *val = static_cast<BYTE*>(malloc(l + 1)); 
+    if (!val)
+    	return "";
 
-    if (ReqQueryValueEx(sub, name, NULL, NULL, val, &l) != ERROR_SUCCESS)
-        return std::string();
+    if (RegQueryValueEx(sub, name, NULL, NULL, val, &l) != ERROR_SUCCESS)
+        return "";
 
-    val[l] = '\0';
-    std::string rv(val);
+    std::string rv(reinterpret_cast<char*>(val));
     free(val);
 
     return rv;

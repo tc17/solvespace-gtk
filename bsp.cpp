@@ -544,6 +544,7 @@ SBsp2 *SBsp2::InsertEdge(SEdge *nedge, Vector nnp, Vector out) {
         return this;
     }
     oops();
+    return NULL; /* compiler warning */
 }
 
 void SBsp2::InsertTriangleHow(int how, STriangle *tr, SMesh *m, SBsp3 *bsp3) {

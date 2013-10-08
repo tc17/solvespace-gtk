@@ -53,6 +53,7 @@ double Bernstein(int k, int deg, double t)
             break;
     }
     oops();
+    return 0; /* compiler warning */
 }
 
 double BernsteinDerivative(int k, int deg, double t)
@@ -93,6 +94,7 @@ double BernsteinDerivative(int k, int deg, double t)
             break;
     }
     oops();
+    return 0; /* compiler warning */
 }
 
 Vector SBezier::PointAt(double t) {

@@ -682,7 +682,7 @@ void SolveSpace::ExportAsPngTo(const std::string& filename) {
     int w = (int)SS.GW.width, h = (int)SS.GW.height;
     // No guarantee that the back buffer contains anything valid right now,
     // so repaint the scene. And hide the toolbar too.
-    int prevShowToolbar = SS.showToolbar;
+    bool prevShowToolbar = SS.showToolbar;
     SS.showToolbar = false;
     SS.GW.Paint();
     SS.showToolbar = prevShowToolbar;

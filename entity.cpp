@@ -86,6 +86,7 @@ Expr *EntityBase::CircleGetRadiusExpr(void) {
     } else if(type == ARC_OF_CIRCLE) {
         return Constraint::Distance(workplane, point[0], point[1]);
     } else oops();
+    return NULL; /* compiler warning */
 }
 
 double EntityBase::CircleGetRadiusNum(void) {
