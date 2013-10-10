@@ -8,18 +8,12 @@
 #define __SOLVESPACE_H
 
 #include <string>
+#include "inttypes.h"
+#include "compat.h"
 
 // Debugging functions
 #define oops() do { dbp("oops at line %d, file %s\n", __LINE__, __FILE__); \
                     if(0) *(char *)0 = 1; exit(-1); } while(0)
-#ifndef min
-#define min(x, y) ((x) < (y) ? (x) : (y))
-#endif
-#ifndef max
-#define max(x, y) ((x) > (y) ? (x) : (y))
-#endif
-
-#define isnan(x) (((x) != (x)) || (x > 1e11) || (x < -1e11))
 
 inline int WRAP(int v, int n) {
     // Clamp it to the range [0, n)
@@ -52,30 +46,6 @@ inline double ffabs(double v) { return (v > 0) ? v : (-v); }
 #define VERY_NEGATIVE   (-1e10)
 
 #define isforname(c) (isalnum(c) || (c) == '_' || (c) == '-' || (c) == '#')
-
-#include <stdlib.h>
-#include <ctype.h>
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
-#include <limits.h>
-#ifdef WIN32
-#   include <windows.h> // required by GL headers
-#endif
-#include <GL/gl.h>
-#include <GL/glu.h>
-
-#ifdef WIN32
-// Define some useful C99 integer types.
-typedef UINT64 uint64_t;
-typedef  INT64  int64_t;
-typedef UINT32 uint32_t;
-typedef  INT32  int32_t;
-typedef USHORT uint16_t;
-typedef  SHORT  int16_t;
-typedef  UCHAR  uint8_t;
-typedef   CHAR   int8_t;
-#endif
 
 inline double Random(double vmax) {
     return (vmax*rand()) / RAND_MAX;
@@ -216,13 +186,12 @@ typedef IdList<Param,hParam> ParamList;
 #include "ui.h"
 #include "expr.h"
 
+#define DEFAULT_TEXT_HEIGHT (11.5)
 
 // Utility functions that are provided in the platform-independent code.
 void glxVertex3v(Vector u);
 void glxAxisAlignedQuad(double l, double r, double t, double b, bool lone = true);
 void glxAxisAlignedLineLoop(double l, double r, double t, double b);
-#define DEFAULT_TEXT_HEIGHT (11.5)
-#define GLX_CALLBACK __stdcall
 typedef void GLX_CALLBACK glxCallbackFptr(void);
 void glxTesselatePolygon(GLUtesselator *gt, SPolygon *p);
 void glxFillPolygon(SPolygon *p);

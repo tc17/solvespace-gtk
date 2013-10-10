@@ -144,7 +144,7 @@ const GraphicsWindow::MenuEntry GraphicsWindow::menu[] = {
 { 0, "&Help",                       0,                  0,      NULL  },
 { 1, "&Website / Manual",           MNU_WEBSITE,        0,      mHelp },
 { 1, "&About",                      MNU_ABOUT,          0,      mHelp },
-{ -1 }
+{-1, NULL,                          0,                  0,      NULL  },
 };
 
 #undef DEL
@@ -362,7 +362,7 @@ void GraphicsWindow::ZoomToFit(bool includingInvisibles) {
         if(dy != 0) scaley = 0.9*height/dy;
         scale = min(scalex, scaley);
 
-        scale = min(300, scale);
+        scale = min(300., scale);
         scale = max(0.003, scale);
     }
 

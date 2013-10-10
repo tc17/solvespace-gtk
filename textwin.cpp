@@ -4,7 +4,8 @@
 // Copyright 2008-2013 Jonathan Westhues.
 //-----------------------------------------------------------------------------
 #include "solvespace.h"
-#include <icons-proto.h>
+#include "icons-proto.h"
+#include <stdarg.h>
 
 const TextWindow::Color TextWindow::fgColors[] = {
     { 'd', RGB(255, 255, 255) },
@@ -35,13 +36,13 @@ TextWindow::HideShowIcon TextWindow::hideShowIcons[] = {
     { &(SS.GW.showPoints),      Icon_point,         "points"                         },
     { &(SS.GW.showConstraints), Icon_constraint,    "constraints and dimensions"     },
     { &(SS.GW.showFaces),       Icon_faces,         "XXX - special cased"            },
-    { &SPACER, 0 },
+    { &SPACER,                  0,                  NULL                             },
     { &(SS.GW.showShaded),      Icon_shaded,        "shaded view of solid model"     },
     { &(SS.GW.showEdges),       Icon_edges,         "edges of solid model"           },
     { &(SS.GW.showMesh),        Icon_mesh,          "triangle mesh of solid model"   },
-    { &SPACER, 0 },
+    { &SPACER,                  0,                  NULL                             },
     { &(SS.GW.showHdnLines),    Icon_hidden_lines,  "hidden lines"                   },
-    { 0, 0 },
+    { 0,                        0,                  NULL                             },
 };
 
 void TextWindow::MakeColorTable(const Color *in, float *out) {
@@ -835,7 +836,7 @@ void TextWindow::Paint(void) {
             if(ltop < (scrollPos-1)) continue;
             if(ltop > scrollPos+halfRows) break;
 
-            for(c = 0; c < min((width/CHAR_WIDTH)+1, MAX_COLS); c++) {
+            for(c = 0; c < min((width/CHAR_WIDTH)+1, int(MAX_COLS)); c++) {
                 int x = LEFT_MARGIN + c*CHAR_WIDTH;
                 int y = (ltop-scrollPos)*(LINE_HEIGHT/2) + 4;
 

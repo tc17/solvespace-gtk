@@ -9,7 +9,7 @@
 #include "solvespace.h"
 #include <png.h>
 
-void SolveSpace::ExportSectionTo(const char *filename) {
+void SolveSpace::ExportSectionTo(const char* filename) {
     Vector gn = (SS.GW.projRight).Cross(SS.GW.projUp);
     gn = gn.WithMagnitude(1);
 
@@ -109,7 +109,7 @@ void SolveSpace::ExportSectionTo(const char *filename) {
     bl.Clear();
 }
 
-void SolveSpace::ExportViewOrWireframeTo(const char *filename, bool wireframe) {
+void SolveSpace::ExportViewOrWireframeTo(const char* filename, bool wireframe) {
     int i;
     SEdgeList edges;
     ZERO(&edges);
@@ -280,11 +280,11 @@ void SolveSpace::ExportLinesAndMesh(SEdgeList *sel, SBezierList *sbl, SMesh *sm,
             // And calculate lighting for the triangle
             Vector n = tt.Normal().WithMagnitude(1);
             double lighting = SS.ambientIntensity +
-                                  max(0, (SS.lightIntensity[0])*(n.Dot(l0))) +
-                                  max(0, (SS.lightIntensity[1])*(n.Dot(l1)));
-            double r = min(1, REDf  (tt.meta.color)*lighting),
-                   g = min(1, GREENf(tt.meta.color)*lighting),
-                   b = min(1, BLUEf (tt.meta.color)*lighting);
+                                  max(0., (SS.lightIntensity[0])*(n.Dot(l0))) +
+                                  max(0., (SS.lightIntensity[1])*(n.Dot(l1)));
+            double r = min(1., REDf  (tt.meta.color)*lighting),
+                   g = min(1., GREENf(tt.meta.color)*lighting),
+                   b = min(1., BLUEf (tt.meta.color)*lighting);
             tt.meta.color = RGBf(r, g, b);
             smp.AddTriangle(&tt);
         }
@@ -403,7 +403,7 @@ double VectorFileWriter::MmToPts(double mm) {
     return (mm/25.4)*72;
 }
 
-VectorFileWriter *VectorFileWriter::ForFile(const char *filename) {
+VectorFileWriter *VectorFileWriter::ForFile(const char* filename) {
     VectorFileWriter *ret;
     if(StringEndsIn(filename, ".dxf")) {
         static DxfFileWriter DxfWriter;
@@ -573,7 +573,7 @@ void VectorFileWriter::BezierAsNonrationalCubic(SBezier *sb, int depth) {
 //-----------------------------------------------------------------------------
 // Export a triangle mesh, in the requested format.
 //-----------------------------------------------------------------------------
-void SolveSpace::ExportMeshTo(const char *filename) {
+void SolveSpace::ExportMeshTo(const char* filename) {
     SMesh *m = &(SK.GetGroup(SS.GW.activeGroup)->displayMesh);
     if(m->IsEmpty()) {
         Error("Active group mesh is empty; nothing to export.");
@@ -673,7 +673,7 @@ void SolveSpace::ExportMeshAsObjTo(FILE *f, SMesh *sm) {
 // Export a view of the model as an image; we just take a screenshot, by
 // rendering the view in the usual way and then copying the pixels.
 //-----------------------------------------------------------------------------
-void SolveSpace::ExportAsPngTo(const char *filename) {
+void SolveSpace::ExportAsPngTo(const char* filename) {
     int w = (int)SS.GW.width, h = (int)SS.GW.height;
     // No guarantee that the back buffer contains anything valid right now,
     // so repaint the scene. And hide the toolbar too.
