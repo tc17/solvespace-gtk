@@ -34,6 +34,40 @@ void Group::Clear(void) {
     impEntity.Clear();
     // remap is the only one that doesn't get recreated when we regen
     remap.Clear();
+
+    impFile.unref();
+    impFileRel.unref();
+}
+
+Group Group::ZeroClone()
+{
+    Group dest = *this;
+    // And then clean up all the stuff that needs to be a deep copy,
+    // and zero out all the dynamic stuff that will get regenerated.
+    dest.clean = false;
+    ZERO(&(dest.solved));
+    ZERO(&(dest.polyLoops));
+    ZERO(&(dest.bezierLoops));
+    ZERO(&(dest.bezierOpens));
+    ZERO(&(dest.polyError));
+    ZERO(&(dest.thisMesh));
+    ZERO(&(dest.runningMesh));
+    ZERO(&(dest.thisShell));
+    ZERO(&(dest.runningShell));
+    ZERO(&(dest.displayMesh));
+    ZERO(&(dest.displayEdges));
+
+    ZERO(&(dest.remap));
+    remap.DeepCopyInto(&(dest.remap));
+
+    ZERO(&(dest.impMesh));
+    ZERO(&(dest.impShell));
+    ZERO(&(dest.impEntity));
+
+    dest.impFile.ref();
+    dest.impFileRel.ref();
+
+    return dest;
 }
 
 void Group::AddParam(IdList<Param,hParam> *param, hParam hp, double v) {
@@ -59,7 +93,7 @@ void Group::MenuGroup(int id) {
     g.scale = 1;
 
     if(id >= RECENT_IMPORT && id < (RECENT_IMPORT + MAX_RECENT)) {
-        strcpy(g.impFile, RecentFile[id-RECENT_IMPORT]);
+        g.impFile = CacheString::newCacheString(RecentFile[id-RECENT_IMPORT]);
         id = GraphicsWindow::MNU_GROUP_IMPORT;
     }
 
@@ -189,30 +223,39 @@ void Group::MenuGroup(int id) {
         case GraphicsWindow::MNU_GROUP_IMPORT: {
             g.type = IMPORTED;
             g.opA = SS.GW.activeGroup;
-            if(strlen(g.impFile) == 0) {
-                if(!GetOpenFile(g.impFile, SLVS_EXT, SLVS_PATTERN)) return;
+            if(!g.impFile.empty()) {
+                std::string impFile;
+                if(!GetOpenFile(&impFile, SLVS_EXT, SLVS_PATTERN)) return;
+                g.impFile.unref();
+                g.impFile = CacheString::newCacheString(impFile);
             }
 
             // Assign the default name of the group based on the name of
             // the imported file.
-            char groupName[MAX_PATH];
-            strcpy(groupName, g.impFile);
-            char *dot = strrchr(groupName, '.');
-            if(dot) *dot = '\0';
+	        std::string impFile = g.impFile.std_str();
+	        size_t dot = impFile.rfind('.');
+	        std::string groupName =
+		    (dot != std::string::npos)
+		    ? std::string(impFile)
+		    : impFile.substr(0, dot);
 
-            char *s, *start = groupName;
-            for(s = groupName; *s; s++) {
-                if(*s == '/' || *s == '\\') {
-                    start = s + 1;
-                } else if(isalnum(*s)) {
+	        size_t pos, start = 0;
+	        for (pos = 0; pos < groupName.size(); ++pos) {
+		        char c = groupName[pos];
+                if (c == '/' || c == '\\') {
+		            start = pos + 1;
+		        } else if (isalnum(c)) {
                     // do nothing, valid character
                 } else {
                     // convert invalid characters (like spaces) to dashes
-                    *s = '-';
-                }
-            }
-            if(strlen(start) > 0) {
-                g.name.strcpy(start);
+                    groupName[pos] = '-';
+		        }
+	        }
+
+            std::string sstart = groupName.substr(start, std::string::npos);
+
+            if(!sstart.empty()) {
+                g.name.strcpy(sstart.c_str());
             } else {
                 g.name.strcpy("import");
             }

@@ -7,6 +7,8 @@
 #ifndef __SOLVESPACE_H
 #define __SOLVESPACE_H
 
+#include <string>
+
 // Debugging functions
 #define oops() do { dbp("oops at line %d, file %s\n", __LINE__, __FILE__); \
                     if(0) *(char *)0 = 1; exit(-1); } while(0)
@@ -83,20 +85,21 @@ class Expr;
 class ExprVector;
 class ExprQuaternion;
 
-
 //================
 // From the platform-specific code.
 #define MAX_RECENT 8
 #define RECENT_OPEN     (0xf000)
 #define RECENT_IMPORT   (0xf100)
-extern char RecentFile[MAX_RECENT][MAX_PATH];
+extern std::string RecentFile[MAX_RECENT];
 void RefreshRecentMenus(void);
 
-#define SAVE_YES     (1)
-#define SAVE_NO     (-1)
-#define SAVE_CANCEL  (0)
-int SaveFileYesNoCancel(void);
+enum {
+	SAVE_YES = 1,
+	SAVE_NO = -1,
+	SAVE_CANCEL = 0
+};
 
+int SaveFileYesNoCancel(void);
 // SolveSpace native file format
 #define SLVS_PATTERN "SolveSpace Models (*.slvs)\0*.slvs\0All Files (*)\0*\0\0"
 #define SLVS_EXT "slvs"
@@ -130,9 +133,9 @@ int SaveFileYesNoCancel(void);
 // Comma-separated value, like a spreadsheet would use
 #define CSV_PATTERN "CSV File (*.csv)\0*.csv\0All Files (*)\0*\0\0"
 #define CSV_EXT "csv"
-bool GetSaveFile(char *file, const char *defExtension, const char *selPattern);
-bool GetOpenFile(char *file, const char *defExtension, const char *selPattern);
-void GetAbsoluteFilename(char *file);
+bool GetSaveFile(std::string *file, const char *defExtension, const char *selPattern);
+bool GetOpenFile(std::string *file, const char *defExtension, const char *selPattern);
+std::string GetAbsoluteFilename(const std::string& path);
 void LoadAllFontFiles(void);
 
 void OpenWebsite(const char *url);
@@ -175,11 +178,11 @@ void DoMessageBox(const char *str, int rows, int cols, bool error);
 void SetTimerFor(int milliseconds);
 void ExitNow(void);
 
-void CnfFreezeString(const char *str, const char *name);
+void CnfFreezeString(const std::string& str, const char *name);
 void CnfFreezeInt(uint32_t v, const char *name);
 void CnfFreezeFloat(float v, const char *name);
 void CnfFreezeBool(bool v, const char *name);
-void CnfThawString(char *str, int maxLen, const char *name);
+std::string CnfThawString(const std::string& str, const char *name);
 uint32_t CnfThawInt(uint32_t v, const char *name);
 float CnfThawFloat(float v, const char *name);
 bool CnfThawBool(bool v, const char *name);
@@ -259,11 +262,11 @@ void MakeMatrix(double *mat, double a11, double a12, double a13, double a14,
                              double a21, double a22, double a23, double a24,
                              double a31, double a32, double a33, double a34,
                              double a41, double a42, double a43, double a44);
-void MakePathRelative(const char *base, char *path);
-void MakePathAbsolute(const char *base, char *path);
+std::string MakePathRelative(const std::string& base, const std::string& path);
+std::string MakePathAbsolute(const std::string& base, const std::string& path);
 bool MakeAcceleratorLabel(int accel, char *out);
 bool StringAllPrintable(const char *str);
-bool StringEndsIn(const char *str, const char *ending);
+bool StringEndsIn(const std::string& str, const char *ending);
 void Message(const char *str, ...);
 void Error(const char *str, ...);
 
@@ -369,14 +372,14 @@ public:
         int x, y;
     } IntPoint;
 
-    char    fontFile[MAX_PATH];
+    CacheString fontFile;
     NameStr name;
     bool    loaded;
 
     // The font itself, plus the mapping from ASCII codes to glyphs
     int     useGlyph[256];
     Glyph   *glyph;
-    int     glyphs;
+    uint16_t glyphs;
 
     int     maxPoints;
     int     scale;
@@ -405,7 +408,7 @@ public:
 
     void LoadGlyph(int index);
     bool LoadFontFromFile(bool nameOnly);
-    const char *FontFileBaseName(void);
+    std::string FontFileBaseName(void);
    
     void Flush(void);
     void Handle(int *dx, int x, int y, bool onCurve);
@@ -431,7 +434,7 @@ public:
 
 class StepFileWriter {
 public:
-    void ExportSurfacesTo(char *filename);
+    void ExportSurfacesTo(const char* filename);
     void WriteHeader(void);
     int ExportCurve(SBezier *sb);
     int ExportCurveLoop(SBezierLoop *loop, bool inner);
@@ -452,7 +455,7 @@ public:
 
     static double MmToPts(double mm);
 
-    static VectorFileWriter *ForFile(char *file);
+    static VectorFileWriter *ForFile(const char* file);
 
     void Output(SBezierLoopSetSet *sblss, SMesh *sm);
 
@@ -710,9 +713,9 @@ public:
     // loaded when we have import groups.
     FILE        *fh;
     void AfterNewFile(void);
-    static void RemoveFromRecentList(char *file);
-    static void AddToRecentList(char *file);
-    char saveFile[MAX_PATH];
+    static void RemoveFromRecentList(const std::string& file);
+    static void AddToRecentList(const std::string& file);
+    std::string saveFile;
     bool fileLoadError;
     bool unsaved;
     typedef struct {
@@ -739,18 +742,18 @@ public:
     void UpdateWindowTitle(void);
     void ClearExisting(void);
     void NewFile(void);
-    bool SaveToFile(char *filename);
-    bool LoadFromFile(char *filename);
-    bool LoadEntitiesFromFile(char *filename, EntityList *le,
+    bool SaveToFile(const char* filename);
+    bool LoadFromFile(const char* filename);
+    bool LoadEntitiesFromFile(const char* filename, EntityList *le,
                                 SMesh *m, SShell *sh);
     void ReloadAllImported(void);
     // And the various export options
-    void ExportAsPngTo(char *file);
-    void ExportMeshTo(char *file);
+    void ExportAsPngTo(const char* file);
+    void ExportMeshTo(const char* file);
     void ExportMeshAsStlTo(FILE *f, SMesh *sm);
     void ExportMeshAsObjTo(FILE *f, SMesh *sm);
-    void ExportViewOrWireframeTo(char *file, bool wireframe);
-    void ExportSectionTo(char *file);
+    void ExportViewOrWireframeTo(const char* filename, bool wireframe);
+    void ExportSectionTo(const char* file);
     void ExportWireframeCurves(SEdgeList *sel, SBezierList *sbl,
                                VectorFileWriter *out);
     void ExportLinesAndMesh(SEdgeList *sel, SBezierList *sbl, SMesh *sm,

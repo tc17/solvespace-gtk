@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string>
 
 /*
  * store a window's position in the registry, or fail silently if the registry calls don't work
@@ -187,22 +188,30 @@ void FreezeStringF(const char *val, const char *subKey, const char *name)
 /*
  * retrieve a string setting, or return the default if that setting is unavailable
  */
-void ThawStringF(char *val, int max, const char *subKey, const char *name)
+std::string ThawStringF(const std::string& val, const char *subKey, const char *name)
 {
     HKEY software;
     if(RegOpenKeyEx(HKEY_CURRENT_USER, "Software", 0, KEY_ALL_ACCESS, &software) != ERROR_SUCCESS)
-        return;
+        return val;
 
     HKEY sub;
     if(RegOpenKeyEx(software, subKey, 0, KEY_ALL_ACCESS, &sub) != ERROR_SUCCESS)
-        return;
+        return val;
 
-    DWORD l = max;
-    if(RegQueryValueEx(sub, name, NULL, NULL, (BYTE *)val, &l) != ERROR_SUCCESS)
-        return;
-    if(l >= (DWORD)max) return;
+    DWORD l;
+    if(RegQueryValueEx(sub, name, NULL, NULL, NULL, &l) != ERROR_SUCCESS)
+        return val;
 
-    val[l] = '\0';
-    return;
+    BYTE *buf = static_cast<BYTE*>(malloc(l + 1));
+    if (!buf)
+        return val;
+
+    if (RegQueryValueEx(sub, name, NULL, NULL, buf, &l) != ERROR_SUCCESS)
+        return val;
+
+    std::string rv(reinterpret_cast<char*>(buf));
+    free(buf);
+
+    return rv;
 }
 

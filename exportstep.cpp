@@ -282,7 +282,7 @@ void StepFileWriter::WriteFooter(void) {
         );
 }
 
-void StepFileWriter::ExportSurfacesTo(char *file) {
+void StepFileWriter::ExportSurfacesTo(const char *file) {
     Group *g = SK.GetGroup(SS.GW.activeGroup);
     SShell *shell = &(g->runningShell);
 

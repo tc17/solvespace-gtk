@@ -324,7 +324,7 @@ void TextWindow::ShowGroupInfo(void) {
         }
     } else if(g->type == Group::IMPORTED) {
         Printf(true, " %Ftimport geometry from file%E");
-        Printf(false, "%Ba   '%s'", g->impFileRel);
+        Printf(false, "%Ba   '%s'", g->impFileRel.c_str());
         Printf(false, "%Bd   %Ftscaled by%E %# %Fl%Ll%f%D[change]%E",
             g->scale,
             &TextWindow::ScreenChangeGroupScale, g->h.v);
@@ -370,7 +370,6 @@ void TextWindow::ShowGroupInfo(void) {
                 REDf(g->color), GREENf(g->color), BLUEf(g->color),
                 ScreenColor, top[rows-1] + 2);
         } else if(g->type == Group::IMPORTED) {
-            bool sup = g->suppress;
             Printf(false, "   %Fd%f%LP%c  suppress this group's solid model",
                 &TextWindow::ScreenChangeGroupOption,
                 g->suppress ? CHECK_TRUE : CHECK_FALSE);

@@ -7,6 +7,10 @@
 #ifndef __DSC_H
 #define __DSC_H
 
+#include <string.h>
+#include "inttypes.h"
+#include "compat.h"
+
 class Vector;
 class Vector4;
 class Point2d;

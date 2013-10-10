@@ -439,8 +439,8 @@ void TextWindow::DrawOrHitTestIcons(int how, double mx, double my)
             ox += 3;
             oy -= 3;
             int tw = ((int)strlen(str) + 1)*CHAR_WIDTH;
-            ox = min(ox, (width - 25) - tw);
-            oy = max(oy, 5);
+            ox = min(ox, (double)((width - 25) - tw));
+            oy = max(oy, 5.);
 
             glxCreateBitmapFont();
             glLineWidth(1);

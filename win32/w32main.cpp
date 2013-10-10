@@ -38,7 +38,7 @@ struct {
     int x, y;
 } LastMousePos;
 
-char RecentFile[MAX_RECENT][MAX_PATH];
+std::string RecentFile[MAX_RECENT];
 HMENU SubMenus[100];
 HMENU RecentOpenMenu, RecentImportMenu;
 
@@ -268,8 +268,8 @@ void ExitNow(void) {
 // Helpers so that we can read/write registry keys from the platform-
 // independent code.
 //-----------------------------------------------------------------------------
-void CnfFreezeString(const char *str, const char *name)
-    { FreezeStringF(str, FREEZE_SUBKEY, name); }
+void CnfFreezeString(const std::string& str, const char *name)
+    { FreezeStringF(str.c_str(), FREEZE_SUBKEY, name); }
 
 void CnfFreezeInt(uint32_t v, const char *name)
     { FreezeDWORDF((DWORD)v, FREEZE_SUBKEY, name); }
@@ -280,8 +280,8 @@ void CnfFreezeFloat(float v, const char *name)
 void CnfFreezeBool(bool v, const char *name)
     { FreezeDWORDF((DWORD)v, FREEZE_SUBKEY, name); }
 
-void CnfThawString(char *str, int maxLen, const char *name)
-    { ThawStringF(str, maxLen, FREEZE_SUBKEY, name); }
+std::string CnfThawString(const std::string& v, const char *name)
+    { return ThawStringF(v, FREEZE_SUBKEY, name); }
 
 uint32_t CnfThawInt(uint32_t v, const char *name)
     { return (uint32_t)ThawDWORDF((DWORD)v, FREEZE_SUBKEY, name); }
@@ -817,9 +817,11 @@ LRESULT CALLBACK GraphicsWndProc(HWND hwnd, UINT msg, WPARAM wParam,
 //-----------------------------------------------------------------------------
 // Common dialog routines, to open or save a file.
 //-----------------------------------------------------------------------------
-bool GetOpenFile(char *file, const char *defExtension, const char *selPattern)
+bool GetOpenFile(std::string *file, const char *defExtension, const char *selPattern)
 {
     OPENFILENAME ofn;
+    char buf[MAX_PATH];
+    buf[0] = '\0';
 
     memset(&ofn, 0, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
@@ -827,7 +829,7 @@ bool GetOpenFile(char *file, const char *defExtension, const char *selPattern)
     ofn.hwndOwner = GraphicsWnd;
     ofn.lpstrFilter = selPattern;
     ofn.lpstrDefExt = defExtension;
-    ofn.lpstrFile = file;
+    ofn.lpstrFile = buf;
     ofn.nMaxFile = MAX_PATH;
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
 
@@ -835,6 +837,7 @@ bool GetOpenFile(char *file, const char *defExtension, const char *selPattern)
     EnableWindow(TextWnd, false);
 
     BOOL r = GetOpenFileName(&ofn);
+    *file = std::string(buf);
 
     EnableWindow(TextWnd, true);
     EnableWindow(GraphicsWnd, true);
@@ -842,9 +845,12 @@ bool GetOpenFile(char *file, const char *defExtension, const char *selPattern)
 
     return r ? true : false;
 }
-bool GetSaveFile(char *file, const char *defExtension, const char *selPattern)
+
+bool GetSaveFile(std::string *file, const char *defExtension, const char *selPattern)
 {
     OPENFILENAME ofn;
+    char buf[MAX_PATH];
+    buf[0] = '\0';
 
     memset(&ofn, 0, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
@@ -852,7 +858,7 @@ bool GetSaveFile(char *file, const char *defExtension, const char *selPattern)
     ofn.hwndOwner = GraphicsWnd;
     ofn.lpstrFilter = selPattern;
     ofn.lpstrDefExt = defExtension;
-    ofn.lpstrFile = file;
+    ofn.lpstrFile = buf;
     ofn.nMaxFile = MAX_PATH;
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
 
@@ -860,6 +866,7 @@ bool GetSaveFile(char *file, const char *defExtension, const char *selPattern)
     EnableWindow(TextWnd, false);
 
     BOOL r = GetSaveFileName(&ofn);
+    *file = std::string(buf);
 
     EnableWindow(TextWnd, true);
     EnableWindow(GraphicsWnd, true);
@@ -867,6 +874,7 @@ bool GetSaveFile(char *file, const char *defExtension, const char *selPattern)
 
     return r ? true : false;
 }
+
 int SaveFileYesNoCancel(void)
 {
     EnableWindow(GraphicsWnd, false);
@@ -909,7 +917,7 @@ void LoadAllFontFiles(void)
         strcat(fullPath, "\\fonts\\");
         strcat(fullPath, wfd.cFileName);
 
-        strcpy(tf.fontFile, fullPath);
+	tf.fontFile = CacheString::newCacheString(fullPath);
         SS.fonts.l.Add(&tf);
 
         if(!FindNextFile(h, &wfd)) break;
@@ -959,9 +967,8 @@ static void DoRecent(HMENU m, int base)
         ;
     int i, c = 0;
     for(i = 0; i < MAX_RECENT; i++) {
-        char *s = RecentFile[i];
-        if(*s) {
-            AppendMenu(m, MF_STRING, base+i, s);
+        if(!RecentFile[i].empty()) {
+            AppendMenu(m, MF_STRING, base+i, RecentFile[i].c_str());
             c++;
         }
     }
