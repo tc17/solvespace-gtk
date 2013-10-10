@@ -280,11 +280,11 @@ void SolveSpace::ExportLinesAndMesh(SEdgeList *sel, SBezierList *sbl, SMesh *sm,
             // And calculate lighting for the triangle
             Vector n = tt.Normal().WithMagnitude(1);
             double lighting = SS.ambientIntensity +
-                                  max(0, (SS.lightIntensity[0])*(n.Dot(l0))) +
-                                  max(0, (SS.lightIntensity[1])*(n.Dot(l1)));
-            double r = min(1, REDf  (tt.meta.color)*lighting),
-                   g = min(1, GREENf(tt.meta.color)*lighting),
-                   b = min(1, BLUEf (tt.meta.color)*lighting);
+                                  max(0., (SS.lightIntensity[0])*(n.Dot(l0))) +
+                                  max(0., (SS.lightIntensity[1])*(n.Dot(l1)));
+            double r = min(1., REDf  (tt.meta.color)*lighting),
+                   g = min(1., GREENf(tt.meta.color)*lighting),
+                   b = min(1., BLUEf (tt.meta.color)*lighting);
             tt.meta.color = RGBf(r, g, b);
             smp.AddTriangle(&tt);
         }
