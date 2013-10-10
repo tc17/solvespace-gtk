@@ -26,8 +26,6 @@ DWORD ThawDWORDF(DWORD val, const char *subKey, const char *name);
 #define FreezeString(val) FreezeStringF(val, FREEZE_SUBKEY, #val)
 void FreezeStringF(const char *val, const char *subKey, const char *name);
 
-#define ThawString(val, max) ThawStringF(val, max, FREEZE_SUBKEY, #val)
-void ThawStringF(char *val, int max, const char *subKey, const char *name);
-
+std::string ThawStringF(const std::string& val, const char *subKey, const char *name);
 
 #endif

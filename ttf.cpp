@@ -35,7 +35,7 @@ void TtfFontList::PlotString(char *font, char *str, double spacing,
     int i;
     for(i = 0; i < l.n; i++) {
         TtfFont *tf = &(l.elem[i]);
-        if(strcmp(tf->FontFileBaseName(), font)==0) {
+        if(tf->FontFileBaseName() == font) {
             tf->LoadFontFromFile(false);
             tf->PlotString(str, spacing, sbl, origin, u, v);
             return;
@@ -224,12 +224,11 @@ void TtfFont::LoadGlyph(int index) {
 // Return the basename of our font filename; that's how the requests and
 // entities that reference us will store it.
 //-----------------------------------------------------------------------------
-const char *TtfFont::FontFileBaseName(void) {
-    char *sb = strrchr(fontFile, '\\');
-    char *sf = strrchr(fontFile, '/');
-    char *s = sf ? sf : sb;
-    if(!s) return "";
-    return s + 1;
+std::string TtfFont::FontFileBaseName(void) {
+    size_t s = fontFile.std_str().find_last_of("\\/");
+    if (s == std::string::npos) return std::string();
+
+    return fontFile.std_str().substr(s+1, std::string::npos);
 }
 
 //-----------------------------------------------------------------------------
@@ -242,7 +241,7 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
 
     int i;
     
-    fh = fopen(fontFile, "rb");
+    fh = fopen(fontFile.c_str(), "rb");
     if(!fh) {
         return false;
     }
@@ -257,14 +256,14 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
 
         // Now load the Table Directory; our goal in doing this will be to
         // find the addresses of the tables that we will need.
-        uint32_t   glyfAddr = (uint32_t)-1, glyfLen;
-        uint32_t   cmapAddr = (uint32_t)-1, cmapLen;
-        uint32_t   headAddr = (uint32_t)-1, headLen;
-        uint32_t   locaAddr = (uint32_t)-1, locaLen;
-        uint32_t   maxpAddr = (uint32_t)-1, maxpLen;
-        uint32_t   nameAddr = (uint32_t)-1, nameLen;
-        uint32_t   hmtxAddr = (uint32_t)-1, hmtxLen;
-        uint32_t   hheaAddr = (uint32_t)-1, hheaLen;
+        uint32_t   glyfAddr = ~0U;
+        uint32_t   cmapAddr = ~0U;
+        uint32_t   headAddr = ~0U;
+        uint32_t   locaAddr = ~0U;
+        uint32_t   maxpAddr = ~0U;
+        uint32_t   nameAddr = ~0U;
+        uint32_t   hmtxAddr = ~0U;
+        uint32_t   hheaAddr = ~0U;
 
         for(i = 0; i < numTables; i++) {
             char tag[5] = "xxxx";
@@ -278,39 +277,26 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
 
             if(strcmp(tag, "glyf")==0) {
                 glyfAddr = offset;
-                glyfLen = length;
             } else if(strcmp(tag, "cmap")==0) {
                 cmapAddr = offset;
-                cmapLen = length;
             } else if(strcmp(tag, "head")==0) {
                 headAddr = offset;
-                headLen = length;
             } else if(strcmp(tag, "loca")==0) {
                 locaAddr = offset;
-                locaLen = length;
             } else if(strcmp(tag, "maxp")==0) {
                 maxpAddr = offset;
-                maxpLen = length;
             } else if(strcmp(tag, "name")==0) {
                 nameAddr = offset;
-                nameLen = length;
             } else if(strcmp(tag, "hhea")==0) {
                 hheaAddr = offset;
-                hheaLen = length;
             } else if(strcmp(tag, "hmtx")==0) {
                 hmtxAddr = offset;
-                hmtxLen = length;
             }
         }
 
-        if(glyfAddr == (uint32_t)-1 ||
-           cmapAddr == (uint32_t)-1 ||
-           headAddr == (uint32_t)-1 ||
-           locaAddr == (uint32_t)-1 ||
-           maxpAddr == (uint32_t)-1 ||
-           hmtxAddr == (uint32_t)-1 ||
-           nameAddr == (uint32_t)-1 ||
-           hheaAddr == (uint32_t)-1)
+        if(glyfAddr == ~0U || cmapAddr == ~0U || headAddr == ~0U ||
+           locaAddr == ~0U || maxpAddr == ~0U || hmtxAddr == ~0U ||
+           nameAddr == ~0U || hheaAddr == ~0U)
         {
             throw "missing table addr";
         }
@@ -346,7 +332,7 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
         if(nameOnly) {
             // Find the display name, and store it in the provided buffer.
             fseek(fh, nameAddr+nameStringOffset+displayNameOffset, SEEK_SET);
-            int c = 0;
+            size_t c = 0;
             for(i = 0; i < displayNameLength; i++) {
                 uint8_t b = GetBYTE();
                 if(b && c < ((int)sizeof(name.str) - 2)) {
@@ -455,7 +441,7 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
         // glyphs.
         fseek(fh, cmapAddr, SEEK_SET);
 
-        uint32_t usedTableAddr = (uint32_t)-1;
+        uint32_t usedTableAddr = ~0U;
 
         uint16_t cmapVersion    = GetUSHORT();
         uint16_t cmapTableCount = GetUSHORT();
@@ -470,7 +456,7 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
             }
         }
 
-        if(usedTableAddr == (uint32_t)-1) {
+        if(usedTableAddr == ~0U) {
             throw "no used table addr";
         }
 
@@ -517,16 +503,15 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
         // So first, null out the glyph table in our in-memory representation
         // of the font; any character for which cmap does not provide a glyph
         // corresponds to -1
-        for(i = 0; i < (int)arraylen(useGlyph); i++) {
-            useGlyph[i] = 0;
+        for(size_t j = 0; j < arraylen(useGlyph); j++) {
+            useGlyph[j] = 0;
         }
 
         for(i = 0; i < segCount; i++) {
             uint16_t v = idDelta[i];
             if(idRangeOffset[i] == 0) {
-                int j;
-                for(j = startChar[i]; j <= endChar[i]; j++) {
-                    if(j > 0 && j < (int)arraylen(useGlyph)) {
+                for(size_t j = startChar[i]; j <= endChar[i]; j++) {
+                    if(j > 0 && j < arraylen(useGlyph)) {
                         // Don't create a reference to a glyph that we won't
                         // store because it's bigger than the table.
                         if((uint16_t)(j + v) < glyphs) {
@@ -536,9 +521,8 @@ bool TtfFont::LoadFontFromFile(bool nameOnly) {
                     }
                 }
             } else {
-                int j;
-                for(j = startChar[i]; j <= endChar[i]; j++) {
-                    if(j > 0 && j < (int)arraylen(useGlyph)) {
+                for(size_t j = startChar[i]; j <= endChar[i]; j++) {
+                    if(j > 0 && j < arraylen(useGlyph)) {
                         int fp = filePos[i];
                         fp += (j - startChar[i])*sizeof(uint16_t);
                         fp += idRangeOffset[i];

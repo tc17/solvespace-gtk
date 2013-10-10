@@ -20,11 +20,6 @@ void SolveSpace::ClearExisting(void) {
     UndoClearStack(&redo);
     UndoClearStack(&undo);
 
-    Group *g;
-    for(g = SK.group.First(); g; g = SK.group.NextAfter(g)) {
-        g->Clear();
-    }
-
     SK.constraint.Clear();
     SK.request.Clear();
     SK.group.Clear();
@@ -115,8 +110,8 @@ const SolveSpace::SaveTable SolveSpace::SAVED[] = {
     { 'g',  "Group.allDimsReference",   'b',    &(SS.sv.g.allDimsReference)   },
     { 'g',  "Group.scale",              'f',    &(SS.sv.g.scale)              },
     { 'g',  "Group.remap",              'M',    &(SS.sv.g.remap)              },
-    { 'g',  "Group.impFile",            'P',    &(SS.sv.g.impFile)            },
-    { 'g',  "Group.impFileRel",         'P',    &(SS.sv.g.impFileRel)         },
+    { 'g',  "Group.impFile",            's',    &(SS.sv.g.impFile)            },
+    { 'g',  "Group.impFileRel",         's',    &(SS.sv.g.impFileRel)         },
 
     { 'p',  "Param.h.v.",               'x',    &(SS.sv.p.h.v)                },
     { 'p',  "Param.val",                'f',    &(SS.sv.p.val)                },
@@ -197,7 +192,6 @@ const SolveSpace::SaveTable SolveSpace::SAVED[] = {
     { 's',  "Style.filled",             'b',    &(SS.sv.s.filled)             },
     { 's',  "Style.visible",            'b',    &(SS.sv.s.visible)            },
     { 's',  "Style.exportable",         'b',    &(SS.sv.s.exportable)         },
-
     { 0, NULL, 0, NULL }
 };
 
@@ -221,7 +215,7 @@ void SolveSpace::SaveUsingTable(int type) {
             case 'x': fprintf(fh, "%08x", *((uint32_t *)p)); break;
             case 'f': fprintf(fh, "%.20f", *((double *)p)); break;
             case 'N': fprintf(fh, "%s", ((NameStr *)p)->str); break;
-            case 'P': fprintf(fh, "%s", (char *)p); break;
+            case 'P': fprintf(fh, "%s", ((CacheString*)p)->c_str()); break;
 
             case 'M': {
                 int j;
@@ -242,7 +236,7 @@ void SolveSpace::SaveUsingTable(int type) {
     }
 }
 
-bool SolveSpace::SaveToFile(char *filename) {
+bool SolveSpace::SaveToFile(const char* filename) {
     // Make sure all the entities are regenerated up to date, since they
     // will be exported.
     SS.GenerateAll(0, INT_MAX);
@@ -368,9 +362,21 @@ void SolveSpace::LoadUsingTable(char *key, char *val) {
                 case 'f': *((double *)p) = atof(val); break;
                 case 'N': ((NameStr *)p)->strcpy(val); break;
 
-                case 'P':
-                    if(strlen(val)+1 < MAX_PATH) strcpy((char *)p, val);
-                    break;
+		case 'P': {
+			CacheString *str = static_cast<CacheString *>(p);
+			if (str)
+				str->unref();
+                    	*str = CacheString::newCacheString(val);
+		    }
+		    break;
+
+		case 's': {
+			CacheString *str = static_cast<CacheString *>(p);
+			if (str)
+				str->unref();
+                    	*str = CacheString::newCacheString(val);
+		    }
+		    break;
 
                 case 'M': {
                     IdList<EntityMap,EntityId> *m =
@@ -406,7 +412,7 @@ void SolveSpace::LoadUsingTable(char *key, char *val) {
     }
 }
 
-bool SolveSpace::LoadFromFile(char *filename) {
+bool SolveSpace::LoadFromFile(const char* filename) {
     allConsistent = false;
     fileLoadError = false;
 
@@ -489,7 +495,7 @@ bool SolveSpace::LoadFromFile(char *filename) {
     return true;
 }
 
-bool SolveSpace::LoadEntitiesFromFile(char *file, EntityList *le,
+bool SolveSpace::LoadEntitiesFromFile(const char* file, EntityList *le,
                                       SMesh *m, SShell *sh)
 {
     SSurface srf;
@@ -639,39 +645,39 @@ void SolveSpace::ReloadAllImported(void) {
         g->impMesh.Clear();
         g->impShell.Clear();
 
-        FILE *test = fopen(g->impFile, "rb");
+        FILE *test = fopen(g->impFile.c_str(), "rb");
         if(test) {
             fclose(test); // okay, exists
         } else {
             // It doesn't exist. Perhaps the entire tree has moved, and we
             // can use the relative filename to get us back.
-            if(SS.saveFile[0]) {
-                char fromRel[MAX_PATH];
-                strcpy(fromRel, g->impFileRel);
-                MakePathAbsolute(SS.saveFile, fromRel);
-                test = fopen(fromRel, "rb");
+            if(!SS.saveFile.empty()) {
+		std::string fromRel = MakePathAbsolute(SS.saveFile, g->impFileRel.std_str());
+                test = fopen(fromRel.c_str(), "rb");
                 if(test) {
                     fclose(test);
                     // It worked, this is our new absolute path
-                    strcpy(g->impFile, fromRel);
+                    g->impFile.unref();
+                    g->impFile = CacheString::newCacheString(fromRel);
                 }
             }
         }
 
-        if(LoadEntitiesFromFile(g->impFile,
+        if(LoadEntitiesFromFile(g->impFile.c_str(),
                         &(g->impEntity), &(g->impMesh), &(g->impShell)))
         {
-            if(SS.saveFile[0]) {
+            if(!SS.saveFile.empty()) {
                 // Record the imported file's name relative to our filename;
                 // if the entire tree moves, then everything will still work
-                strcpy(g->impFileRel, g->impFile);
-                MakePathRelative(SS.saveFile, g->impFileRel);
+                g->impFileRel.unref();
+                g->impFileRel = CacheString::newCacheString(MakePathRelative(SS.saveFile, g->impFile.std_str()));
             } else {
                 // We're not yet saved, so can't make it absolute
-                strcpy(g->impFileRel, g->impFile);
+		g->impFileRel.unref();
+                g->impFileRel = g->impFile.ref();
             }
         } else {
-            Error("Failed to load imported file '%s'", g->impFile);
+            Error("Failed to load imported file '%s'", g->impFile.c_str());
         }
     }
 }

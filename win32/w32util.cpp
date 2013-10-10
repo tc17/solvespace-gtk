@@ -26,11 +26,11 @@ void dbp(const char *str, ...)
     OutputDebugString(buf);
 }
 
-void GetAbsoluteFilename(char *file)
+std::string GetAbsoluteFilename(const std::string& path)
 {
     char absoluteFile[MAX_PATH];
-    GetFullPathName(file, sizeof(absoluteFile), absoluteFile, NULL);
-    strcpy(file, absoluteFile);
+    GetFullPathName(path.c_str(), sizeof(absoluteFile), absoluteFile, NULL);
+    return std::string(absoluteFile);
 }
 
 //-----------------------------------------------------------------------------

@@ -8,6 +8,8 @@
 #ifndef __SKETCH_H
 #define __SKETCH_H
 
+#include "cachestring.h"
+
 class hGroup;
 class hRequest;
 class hEntity;
@@ -189,18 +191,18 @@ public:
     enum { REMAP_PRIME = 19477 };
     int remapCache[REMAP_PRIME];
 
-    char                       impFile[MAX_PATH];
-    char                       impFileRel[MAX_PATH];
+    CacheString                impFile;
+    CacheString                impFileRel;
     SMesh                      impMesh;
     SShell                     impShell;
     EntityList                 impEntity;
 
     NameStr     name;
 
-
     void Activate(void);
     char *DescriptionString(void);
     void Clear(void);
+    Group ZeroClone();
 
     static void AddParam(ParamList *param, hParam hp, double v);
     void Generate(EntityList *entity, ParamList *param);

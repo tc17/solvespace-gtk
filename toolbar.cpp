@@ -6,9 +6,10 @@
 // Copyright 2008-2013 Jonathan Westhues.
 //-----------------------------------------------------------------------------
 #include "solvespace.h"
-#include <icons.h>
+#include "icons.h"
 
-uint8_t SPACER[1];
+uint8_t BSPACER[1];
+#define SPACER BSPACER, 0, NULL
 static const struct {
     uint8_t     *image;
     int          menu;
@@ -50,8 +51,9 @@ static const struct {
 
     { Icon_in3d,            GraphicsWindow::MNU_NEAREST_ISO,    "Nearest isometric view"                            },
     { Icon_ontoworkplane,   GraphicsWindow::MNU_ONTO_WORKPLANE, "Align view to active workplane"                    },
-    { NULL  },
+    { NULL,                 0,                                  NULL                                                },
 };
+#undef SPACER
 
 void GraphicsWindow::ToolbarDraw(void) {
     ToolbarDrawOrHitTest(0, 0, true, NULL);
@@ -141,7 +143,7 @@ bool GraphicsWindow::ToolbarDrawOrHitTest(int mx, int my,
 
     bool leftpos = true;
     for(i = 0; Toolbar[i].image; i++) {
-        if(Toolbar[i].image == SPACER) {
+        if(Toolbar[i].image == BSPACER) {
             if(!leftpos) {
                 leftpos = true;
                 y -= 32;
