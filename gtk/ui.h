@@ -81,7 +81,6 @@ protected:
 	SSWindow* sswindow_;
 	Glx* glx_;
 	FloatWindow floatWindow_;
-	Glib::RefPtr<Gtk::AccelGroup> accelGroup_;
 public:
 	virtual ~GlxWindow();
 	Glx& widget();
@@ -99,9 +98,14 @@ private:
 class GlxGraphicsWindow : public GlxWindow
 {
 	Gtk::Box box_;
+	Gtk::MenuBar menuBar_;
+	std::map<int, Gtk::CheckMenuItem*> menuMap_;
 public:
 	static GlxGraphicsWindow& getInstance();
 	virtual ~GlxGraphicsWindow();
+	void checkMenu(int id, bool checked);
+	void enableMenu(int id, bool enabled);
+	void radioMenu(int id, bool selected);
 private:
 	GlxGraphicsWindow();
 	GlxGraphicsWindow(const GlxGraphicsWindow&);

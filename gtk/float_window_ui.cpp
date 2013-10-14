@@ -1,6 +1,6 @@
 #include "float_window_ui.h"
 
-FloatWindow::FloatWindow() : entry_()
+FloatWindow::FloatWindow() : entry_(), signal_entry_activate_()
 {
 	set_decorated(false);
 	add(entry_);

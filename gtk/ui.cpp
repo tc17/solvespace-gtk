@@ -3,8 +3,9 @@
 #include "solvespace.h"
 #include "ui.h"
 #include "aux_ui.h"
-#include "popup_menu_ui.h"
 #include "fcutil.h"
+#include "popup_menu_ui.h"
+#include "menu_item_ui.h"
 
 enum {
 	GRAPHICS_WINDOW_INITIAL_WIDTH = 900,
@@ -147,7 +148,7 @@ private:
 };
 
 
-GlxWindow::GlxWindow() : sswindow_(), glx_(), floatWindow_(), accelGroup_()
+GlxWindow::GlxWindow() : sswindow_(), glx_(), floatWindow_()
 {
 	set_redraw_on_allocate(false);
 	floatWindow_.signal_entry_activate().connect(sigc::mem_fun(*this, &GlxWindow::entryOnActivate));
@@ -208,7 +209,7 @@ GlxGraphicsWindow& GlxGraphicsWindow::getInstance()
 	return instance;
 }
 
-GlxGraphicsWindow::GlxGraphicsWindow() : box_(Gtk::ORIENTATION_VERTICAL)
+GlxGraphicsWindow::GlxGraphicsWindow() : box_(Gtk::ORIENTATION_VERTICAL), menuBar_(), menuMap_()
 {
 	sswindow_ = new SSGraphics(SS.GW);
 	glx_ = new Glx(*sswindow_, true);
@@ -216,70 +217,76 @@ GlxGraphicsWindow::GlxGraphicsWindow() : box_(Gtk::ORIENTATION_VERTICAL)
 	set_default_size(GRAPHICS_WINDOW_INITIAL_WIDTH, GRAPHICS_WINDOW_INITIAL_HEIGHT);
 
 	add(box_);
+	box_.pack_start(menuBar_, Gtk::PACK_SHRINK);
 	box_.pack_end(*glx_);
 
-	std::string path = "/ui/";
-	Glib::RefPtr<Gtk::ActionGroup> actionGroup = Gtk::ActionGroup::create();
-	Glib::RefPtr<Gtk::UIManager> uiManager = Gtk::UIManager::create();
+	Glib::RefPtr<Gtk::AccelGroup> accelGroup = Gtk::AccelGroup::create();
 
-	uiManager->add_ui(uiManager->new_merge_id(), path, "MenuBar", "MenuBar",
-			Gtk::UI_MANAGER_MENUBAR);
-	path += "MenuBar/";
-	std::string subpath;
+	Gtk::MenuItem *parent = NULL;
 
 	for (int i = 0; SS.GW.menu[i].level >= 0; i++) {
 		const GraphicsWindow::MenuEntry *entry = &SS.GW.menu[i];
+		Gtk::MenuItem *item = NULL;
 		if (entry->label) {
 			Label label(entry->label);
-			Gtk::AccelKey accel = entry->accel ? Gtk::AccelKey(Accel::key(entry->accel), Accel::mods(entry->accel)) :
-				Gtk::AccelKey("");
-#if 0
-			if (entry->id)
-				actionGroup->add(Gtk::Action::create(entry->label, label.label()),
-						Gtk::AccelKey(label.accelerator()),
-						sigc::bind<int>(sigc::ptr_fun(entry->fn), entry->id));
+			//item = Gtk::manage(new Gtk::MenuItem(label.label(), true));
+			item = Gtk::manage(entry->level ? new MenuItem(label.label(), true)
+					: new Gtk::MenuItem(label.label(), true));
 
-			else
-				actionGroup->add(Gtk::Action::create(entry->label, label.label()),
-					Gtk::AccelKey(label.accelerator()));
-#endif
-			if (entry->id)
-				actionGroup->add(Gtk::Action::create(entry->label, label.label()),
-						accel, sigc::bind<int>(sigc::ptr_fun(entry->fn), entry->id));
-			else
-				actionGroup->add(Gtk::Action::create(entry->label, label.label()));
-
-			if (entry->level == 0) {
-				subpath = path + SS.GW.menu[i].label;
-				subpath += "/";
-				uiManager->add_ui(uiManager->new_merge_id(), path,
-					entry->label, entry->label,
-					Gtk::UI_MANAGER_MENU, false);
-			} else {
-				if (SS.GW.menu[i].id) {
-					uiManager->add_ui(entry->id, subpath, entry->label,
-						entry->label, Gtk::UI_MANAGER_MENUITEM, false);
-				} else
-					uiManager->add_ui(uiManager->new_merge_id(), subpath,
-						entry->label, entry->label,
-						Gtk::UI_MANAGER_MENUITEM, false);
+			Glib::RefPtr<Gtk::Action> action = Gtk::Action::create(label.label(), label.label());
+			if (entry->id) {
+				action->signal_activate().connect(sigc::bind<int>(sigc::ptr_fun(entry->fn), entry->id));
+				if (entry->level)
+					menuMap_.insert(std::pair<int, Gtk::CheckMenuItem*>(entry->id,
+							static_cast<Gtk::CheckMenuItem*>(item)));
 			}
 
-		} else
-			uiManager->add_ui_separator(uiManager->new_merge_id(), subpath);
+			item->set_related_action(action);
+			if (entry->accel)
+				item->add_accelerator("activate", accelGroup, Accel::key(entry->accel),
+						Accel::mods(entry->accel), Gtk::ACCEL_VISIBLE);
+		} else {
+			item = Gtk::manage(new Gtk::SeparatorMenuItem());
+		}
+
+
+		if (entry->level == 0) {
+			parent = item;
+			menuBar_.append(*item);
+		} else {
+			assert(parent);
+			if (!parent->get_submenu())
+				parent->set_submenu(*Gtk::manage(new Gtk::Menu()));
+			parent->get_submenu()->append(*item);
+		}
 	}
 
-	uiManager->insert_action_group(actionGroup);
-
-	Gtk::Widget *menuBar = uiManager->get_widget("/MenuBar");
-	if (menuBar)
-		box_.pack_start(*menuBar, Gtk::PACK_SHRINK);
-
-	accelGroup_ = uiManager->get_accel_group();
-
-	add_accel_group(accelGroup_);
-
+	add_accel_group(accelGroup);
 	show_all();
+}
+
+static inline Gtk::StateFlags setFlags(Gtk::StateFlags flags, Gtk::StateFlags mask, bool set)
+{
+	return set ? (flags | mask) : (flags & ~mask);
+}
+
+void GlxGraphicsWindow::checkMenu(int id, bool checked)
+{
+	Gtk::CheckMenuItem *item = menuMap_[id];
+	item->set_state_flags(setFlags(item->get_state_flags(), Gtk::STATE_FLAG_ACTIVE, checked));
+}
+
+void GlxGraphicsWindow::enableMenu(int id, bool enabled)
+{
+	Gtk::CheckMenuItem *item = menuMap_[id];
+	item->set_sensitive(enabled);
+}
+
+void GlxGraphicsWindow::radioMenu(int id, bool selected)
+{
+	Gtk::CheckMenuItem *item = menuMap_[id];
+	item->set_draw_as_radio();
+	item->set_state_flags(setFlags(item->get_state_flags(), Gtk::STATE_FLAG_ACTIVE, selected));
 }
 
 bool GlxGraphicsWindow::on_delete_event(GdkEventAny* event)
@@ -583,17 +590,17 @@ void GetGraphicsWindowSize(int *w, int *h)
 
 void CheckMenuById(int id, bool checked)
 {
-	printf("%s: STUB\n", __func__);
+	GlxGraphicsWindow::getInstance().checkMenu(id, checked);
 }
 
-void EnableMenuById(int id, bool checked)
+void EnableMenuById(int id, bool enabled)
 {
-	printf("%s: STUB\n", __func__);
+	GlxGraphicsWindow::getInstance().enableMenu(id, enabled);
 }
 
 void RadioMenuById(int id, bool selected)
 {
-	printf("%s: STUB\n", __func__);
+	GlxGraphicsWindow::getInstance().radioMenu(id, selected);
 }
 
 void DoMessageBox(const char *str, int rows, int cols, bool error)

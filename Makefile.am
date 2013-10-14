@@ -22,11 +22,9 @@ nodist_solvespace_SOURCES = icons.h icons-proto.h
 AM_CXXFLAGS += $(GL_CFLAGS) $(GLU_CFLAGS) $(PNG_CFLAGS) $(FONTCONFIG_CFLAGS) $(GTKMM_CFLAGS)
 solvespace_LDADD = $(GL_LIBS) $(GLU_LIBS) $(PNG_LIBS) $(FONTCONFIG_LIBS) $(GTKMM_LIBS)
 
-#if HAVE_GTKMM
 solvespace_SOURCES += gtk/unixutil.cpp gtk/config.cpp gtk/ui.cpp gtk/ui.h gtk/aux_ui.cpp gtk/aux_ui.h \
 		      gtk/popup_menu_ui.cpp gtk/popup_menu_ui.h gtk/float_window_ui.cpp gtk/float_window_ui.h \
-		      gtk/fcutil.h gtk/fcutil.cpp gtk/main.cpp
-#endif
+		      gtk/fcutil.h gtk/fcutil.cpp gtk/menu_item_ui.h gtk/menu_item_ui.cpp gtk/main.cpp
 
 
 CLEANFILES = icons.h icons-proto.h bitmapextra.table.h
