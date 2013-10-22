@@ -106,6 +106,7 @@ public:
 	void checkMenu(int id, bool checked);
 	void enableMenu(int id, bool enabled);
 	void radioMenu(int id, bool selected);
+	void populateRecentMenu(int id, int base, void (*fn)(int));
 private:
 	GlxGraphicsWindow();
 	GlxGraphicsWindow(const GlxGraphicsWindow&);

@@ -303,7 +303,7 @@ void SolveSpace::RemoveFromRecentList(const std::string& file) {
             dest++;
         }
     }
-    while(dest < MAX_RECENT) RecentFile[dest++] = std::string();
+    while(dest < MAX_RECENT) RecentFile[dest++] = "";
     RefreshRecentMenus();
 }
 void SolveSpace::AddToRecentList(const std::string& file) {

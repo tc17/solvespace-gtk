@@ -229,13 +229,14 @@ GlxGraphicsWindow::GlxGraphicsWindow() : box_(Gtk::ORIENTATION_VERTICAL), menuBa
 		Gtk::MenuItem *item = NULL;
 		if (entry->label) {
 			Label label(entry->label);
-			//item = Gtk::manage(new Gtk::MenuItem(label.label(), true));
 			item = Gtk::manage(entry->level ? new MenuItem(label.label(), true)
 					: new Gtk::MenuItem(label.label(), true));
 
 			Glib::RefPtr<Gtk::Action> action = Gtk::Action::create(label.label(), label.label());
 			if (entry->id) {
-				action->signal_activate().connect(sigc::bind<int>(sigc::ptr_fun(entry->fn), entry->id));
+				if (entry->id != GraphicsWindow::MNU_OPEN_RECENT && entry->id != GraphicsWindow::MNU_GROUP_RECENT)
+					action->signal_activate().connect(sigc::bind<int>(sigc::ptr_fun(entry->fn), entry->id));
+
 				if (entry->level)
 					menuMap_.insert(std::pair<int, Gtk::CheckMenuItem*>(entry->id,
 							static_cast<Gtk::CheckMenuItem*>(item)));
@@ -293,6 +294,22 @@ bool GlxGraphicsWindow::on_delete_event(GdkEventAny* event)
 {
 	SolveSpace::MenuFile(GraphicsWindow::MNU_EXIT);
 	return GlxWindow::on_delete_event(event);
+}
+
+void GlxGraphicsWindow::populateRecentMenu(int id, int base, void (*fn)(int))
+{
+	Gtk::CheckMenuItem *recent = menuMap_[id];
+	recent->set_submenu(*Gtk::manage(new Gtk::Menu()));
+
+	Gtk::Menu *menu = recent->get_submenu();
+	for (int i = 0; i < MAX_RECENT; i++) {
+		if (!RecentFile[i].empty()) {
+			Gtk::MenuItem *item = Gtk::manage(new Gtk::MenuItem(RecentFile[i]));
+			item->signal_activate().connect(sigc::bind<int>(sigc::ptr_fun(fn), base + i));
+			menu->append(*item);
+		}
+	}
+	recent->show_all();
 }
 
 GlxGraphicsWindow::~GlxGraphicsWindow()
@@ -729,7 +746,17 @@ void SetWindowTitle(const char *str)
 
 void RefreshRecentMenus(void)
 {
-	printf("%s: STUB\n", __func__);
+	GlxGraphicsWindow::getInstance().populateRecentMenu(
+		GraphicsWindow::MNU_OPEN_RECENT,
+		RECENT_OPEN,
+		&SolveSpace::MenuFile
+	);
+
+	GlxGraphicsWindow::getInstance().populateRecentMenu(
+		GraphicsWindow::MNU_GROUP_RECENT,
+		RECENT_IMPORT,
+		&Group::MenuGroup
+	);
 }
 
 int SaveFileYesNoCancel(void)
